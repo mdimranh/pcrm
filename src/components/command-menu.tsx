@@ -10,8 +10,8 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { useSearch } from "@/context/search-provider";
-import { useTheme } from "@/context/theme-provider";
 import { ArrowRight, ChevronRight, Laptop, Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { sidebarData } from "./layout/data/sidebar-data";

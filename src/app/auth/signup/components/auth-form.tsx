@@ -24,6 +24,8 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 const formSchema = z.object({
+  firstName: z.string().min(1, "Please enter your first name"),
+  lastName: z.string().min(1, "Please enter your last name"),
   email: z.email({
     error: (iss) => (iss.input === "" ? "Please enter your email" : undefined),
   }),
@@ -49,6 +51,8 @@ export function UserAuthForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      firstName: "",
+      lastName: "",
       email: "",
       password: "",
     },
@@ -91,6 +95,53 @@ export function UserAuthForm({
         className={cn("grid gap-3", className)}
         {...props}
       >
+        <div className="grid grid-cols-2 gap-2">
+          <Button variant="outline" type="button" disabled={isLoading}>
+            <IconGithub className="h-4 w-4" /> GitHub
+          </Button>
+          <Button variant="outline" type="button" disabled={isLoading}>
+            <IconFacebook className="h-4 w-4" /> Facebook
+          </Button>
+        </div>
+
+        <div className="relative my-2">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background text-muted-foreground px-2">
+              Or continue with
+            </span>
+          </div>
+        </div>
+        <div className="flex w-full gap-2 justify-between">
+          <FormField
+            control={form.control}
+            name="firstName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>First Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="John" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="lastName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Last Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Doe" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <FormField
           control={form.control}
           name="email"
@@ -125,28 +176,8 @@ export function UserAuthForm({
         />
         <Button className="mt-2" disabled={isLoading}>
           {isLoading ? <Loader2 className="animate-spin" /> : <LogIn />}
-          Sign in
+          Sign up
         </Button>
-
-        <div className="relative my-2">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background text-muted-foreground px-2">
-              Or continue with
-            </span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" type="button" disabled={isLoading}>
-            <IconGithub className="h-4 w-4" /> GitHub
-          </Button>
-          <Button variant="outline" type="button" disabled={isLoading}>
-            <IconFacebook className="h-4 w-4" /> Facebook
-          </Button>
-        </div>
       </form>
     </Form>
   );

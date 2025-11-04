@@ -22,23 +22,21 @@ import {
 } from "@/components/ui/sheet";
 import { useDirection } from "@/context/direction-provider";
 import { type Collapsible, useLayout } from "@/context/layout-provider";
-import { useTheme } from "@/context/theme-provider";
 import { cn } from "@/lib/utils";
 import { Item, Root as Radio } from "@radix-ui/react-radio-group";
 import { CircleCheck, RotateCcw, Settings } from "lucide-react";
+import { useTheme } from "next-themes";
 import { type SVGProps } from "react";
 import { useSidebar } from "./ui/sidebar";
 
 export function ConfigDrawer() {
   const { setOpen } = useSidebar();
   const { resetDir } = useDirection();
-  const { resetTheme } = useTheme();
   const { resetLayout } = useLayout();
 
   const handleReset = () => {
     setOpen(true);
     resetDir();
-    resetTheme();
     resetLayout();
   };
 
@@ -171,7 +169,8 @@ function RadioGroupItem({
 }
 
 function ThemeConfig() {
-  const { defaultTheme, theme, setTheme } = useTheme();
+  const defaultTheme = "system";
+  const { theme, setTheme } = useTheme();
   return (
     <div>
       <SectionTitle

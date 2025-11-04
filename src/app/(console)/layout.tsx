@@ -1,10 +1,7 @@
 import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { DirectionProvider } from "@/context/direction-provider";
-import { FontProvider } from "@/context/font-provider";
-import { ThemeProvider } from "@/context/theme-provider";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import NextTopLoader from "nextjs-toploader";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -27,47 +24,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const setThemeScript = `
-    (function() {
-      try {
-        function getCookie(name) {
-          var m = document.cookie.match('(^|;)\\\\s*' + name + '\\\\s*=\\\\s*([^;]+)');
-          return m ? decodeURIComponent(m[2]) : null;
-        }
-        var stored = getCookie('theme');
-        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        var shouldDark = false;
-        if (stored) {
-          var s = String(stored).trim().toLowerCase();
-          if (s === 'dark' || s === '1' || s === 'true') shouldDark = true;
-          else if (s === 'light' || s === '0' || s === 'false') shouldDark = false;
-          else if (s === 'system') shouldDark = prefersDark;
-          else shouldDark = prefersDark;
-        } else {
-          shouldDark = prefersDark;
-        }
-        document.documentElement.classList.toggle('dark', !!shouldDark);
-      } catch (e) {}
-    })();
-  `;
-
   return (
-    <html lang="en">
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: setThemeScript }} />
-      </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <NextTopLoader color="#BECBD6" showSpinner={false} />
-        <ThemeProvider>
-          <FontProvider>
-            <DirectionProvider>
-              {AuthenticatedLayout({ children })}
-            </DirectionProvider>
-          </FontProvider>
-        </ThemeProvider>
-      </body>
-    </html>
+    <DirectionProvider>{AuthenticatedLayout({ children })}</DirectionProvider>
   );
 }

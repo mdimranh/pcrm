@@ -7,9 +7,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useTheme } from "@/context/theme-provider";
 import { cn } from "@/lib/utils";
 import { Check, Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useEffect } from "react";
 
 export function ThemeSwitch() {
