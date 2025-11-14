@@ -25,23 +25,33 @@ type LayoutContextType = {
   defaultVariant: Variant;
   variant: Variant;
   setVariant: (variant: Variant) => void;
+
+  state: boolean;
 };
 
 const LayoutContext = createContext<LayoutContextType | null>(null);
 
 type LayoutProviderProps = {
   children: React.ReactNode;
+  defaultCollapsible?: Collapsible;
+  defaultVariant?: Variant;
+  state?: boolean;
 };
 
-export function LayoutProvider({ children }: LayoutProviderProps) {
+export function LayoutProvider({
+  children,
+  defaultCollapsible,
+  defaultVariant,
+  state,
+}: LayoutProviderProps) {
   const [collapsible, _setCollapsible] = useState<Collapsible>(() => {
     const saved = getCookie(LAYOUT_COLLAPSIBLE_COOKIE_NAME);
-    return (saved as Collapsible) || DEFAULT_COLLAPSIBLE;
+    return (saved as Collapsible) || defaultCollapsible || DEFAULT_COLLAPSIBLE;
   });
 
   const [variant, _setVariant] = useState<Variant>(() => {
     const saved = getCookie(LAYOUT_VARIANT_COOKIE_NAME);
-    return (saved as Variant) || DEFAULT_VARIANT;
+    return (saved as Variant) || defaultVariant || DEFAULT_VARIANT;
   });
 
   const setCollapsible = (newCollapsible: Collapsible) => {
@@ -71,6 +81,7 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
     defaultVariant: DEFAULT_VARIANT,
     variant,
     setVariant,
+    state: state || false,
   };
 
   return <LayoutContext value={contextValue}>{children}</LayoutContext>;
