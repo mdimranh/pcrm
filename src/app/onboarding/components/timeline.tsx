@@ -18,7 +18,7 @@ const steps = [
 
 export default function OnBoardingTimeline() {
   return (
-    <div className="max-w-(--breakpoint-sm) mx-auto py-12 md:py-20 px-6">
+    <div className="max-w-(--breakpoint-sm) mx-auto py-2 md:py-4 px-6">
       <div className="relative ml-3">
         <div className="absolute left-0 top-4 bottom-0" />
         {steps.map(({ description, title, completed }, index) => (
