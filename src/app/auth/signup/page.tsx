@@ -34,7 +34,7 @@ export default function SignUp() {
               className="hover:text-primary underline underline-offset-4 cursor-pointer"
               onClick={() => router.push("/auth/signin")}
             >
-              Create one
+              Sign in
             </span>
             .
           </p>
