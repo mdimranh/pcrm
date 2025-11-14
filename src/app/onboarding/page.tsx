@@ -1,21 +1,34 @@
-import { Info } from "lucide-react";
-import OnBoardingTimeline from "./components/timeline";
+"use client";
 
-export default function OnBoarding() {
+import { Onboarding } from "./components";
+import { Organization } from "./components/steps/organization";
+import { OnboardingProvider } from "./provider";
+
+const steps = [
+  {
+    title: "Organization",
+    description: "Create your organization. Choose a name and a logo.",
+    completed: false,
+    children: <Organization />,
+  },
+  {
+    title: "Domain",
+    description: "Buy or acquire a domain. Or use a subdomain.",
+    completed: false,
+    children: <Organization />,
+  },
+  {
+    title: "Configuration",
+    description: "Configure your organization. Create a team and invite users.",
+    completed: false,
+    children: <Organization />,
+  },
+];
+
+export default function OnBoardingpAGE() {
   return (
-    <div className="flex justify-between h-screen">
-      <div className=""></div>
-      <div className="max-w-96 px-4 py-12 bg-primary-foreground flex flex-col justify-between">
-        <OnBoardingTimeline />
-        <div className="flex flex-col gap-3">
-          <Info size={20} />
-          <p className="font-semibold">Having trouble?</p>
-          <p className="text-sm text-muted-foreground">
-            Feel free to contact us and we aill always help you through the
-            process.
-          </p>
-        </div>
-      </div>
-    </div>
+    <OnboardingProvider steps={steps}>
+      <Onboarding />
+    </OnboardingProvider>
   );
 }

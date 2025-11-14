@@ -1,22 +1,9 @@
-const steps = [
-  {
-    title: "Senior Full Stack Developer",
-    description: "Led the development of enterprise-scale web applications.",
-    completed: true,
-  },
-  {
-    title: "Full Stack Developer",
-    description: "Developed and maintained multiple client projects.",
-    completed: false,
-  },
-  {
-    title: "Frontend Developer",
-    description: "Created responsive and interactive user interfaces.",
-    completed: false,
-  },
-];
+"use client";
+
+import { useOnboarding } from "../provider";
 
 export default function OnBoardingTimeline() {
+  const { steps, currentStep } = useOnboarding();
   return (
     <div className="max-w-(--breakpoint-sm) mx-auto py-2 md:py-4 px-6">
       <div className="relative ml-3">
@@ -24,8 +11,10 @@ export default function OnBoardingTimeline() {
         {steps.map(({ description, title, completed }, index) => (
           <div
             key={index}
-            className={`relative pb-12 last:pb-0 last:border-l-transparent border-l-2 flex items-start ${
-              completed ? "opacity-100" : "opacity-40"
+            className={`relative pb-6 last:pb-0 last:border-l-transparent border-l-2 flex items-start ${
+              completed || currentStep?.index === index
+                ? "opacity-100"
+                : "opacity-40"
             }`}
           >
             <div
@@ -35,7 +24,6 @@ export default function OnBoardingTimeline() {
             >
               {index + 1}
             </div>
-            {/* Content */}
             <div className="flex flex-col">
               <span className="font-semibold">{title}</span>
               <span className="text-sm text-muted-foreground">
