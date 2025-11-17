@@ -1,6 +1,5 @@
 "use client";
 
-import { IconFacebook, IconGmail } from "@/assets/brand-icons";
 import { PasswordInput } from "@/components/password-input";
 import { Button } from "@/components/ui/button";
 import {
@@ -91,25 +90,6 @@ export function UserAuthForm({
         className={cn("grid gap-3", className)}
         {...props}
       >
-        <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" type="button" disabled={isLoading}>
-            <IconGmail className="h-4 w-4" /> Gmail
-          </Button>
-          <Button variant="outline" type="button" disabled={isLoading}>
-            <IconFacebook className="h-4 w-4" /> Facebook
-          </Button>
-        </div>
-
-        <div className="relative my-2">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background text-muted-foreground px-2">
-              Or continue with
-            </span>
-          </div>
-        </div>
         <FormField
           control={form.control}
           name="email"

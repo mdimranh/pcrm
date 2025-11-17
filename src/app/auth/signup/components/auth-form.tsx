@@ -1,6 +1,5 @@
 "use client";
 
-import { IconFacebook, IconGithub } from "@/assets/brand-icons";
 import { PasswordInput } from "@/components/password-input";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +21,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { UnitSelector } from "./unit-selector";
 
 const formSchema = z.object({
   firstName: z.string().min(1, "Please enter your first name"),
@@ -33,6 +33,11 @@ const formSchema = z.object({
     .string()
     .min(1, "Please enter your password")
     .min(7, "Password must be at least 7 characters long"),
+  divisionId: z.string().min(1, "Please select your division"),
+  districtId: z.string().optional(),
+  upazilaId: z.string().optional(),
+  unionId: z.string().optional(),
+  pollingUnitId: z.string().optional(),
 });
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLFormElement> {
@@ -55,6 +60,11 @@ export function UserAuthForm({
       lastName: "",
       email: "",
       password: "",
+      divisionId: "",
+      districtId: "",
+      upazilaId: "",
+      unionId: "",
+      pollingUnitId: "",
     },
   });
 
@@ -62,7 +72,7 @@ export function UserAuthForm({
     setIsLoading(true);
 
     toast.promise(sleep(2000), {
-      loading: "Signing in...",
+      loading: "Registering, please wait...",
       success: () => {
         setIsLoading(false);
 
@@ -95,25 +105,6 @@ export function UserAuthForm({
         className={cn("grid gap-3", className)}
         {...props}
       >
-        <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" type="button" disabled={isLoading}>
-            <IconGithub className="h-4 w-4" /> GitHub
-          </Button>
-          <Button variant="outline" type="button" disabled={isLoading}>
-            <IconFacebook className="h-4 w-4" /> Facebook
-          </Button>
-        </div>
-
-        <div className="relative my-2">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background text-muted-foreground px-2">
-              Or continue with
-            </span>
-          </div>
-        </div>
         <div className="flex w-full gap-2 justify-between">
           <FormField
             control={form.control}
@@ -155,6 +146,7 @@ export function UserAuthForm({
             </FormItem>
           )}
         />
+        <UnitSelector setValue={form.setValue} form={form} />
         <FormField
           control={form.control}
           name="password"
@@ -174,7 +166,7 @@ export function UserAuthForm({
             </FormItem>
           )}
         />
-        <Button className="mt-2" disabled={isLoading}>
+        <Button className="mt-2" disabled={isLoading} type="submit">
           {isLoading ? <Loader2 className="animate-spin" /> : <LogIn />}
           Sign up
         </Button>

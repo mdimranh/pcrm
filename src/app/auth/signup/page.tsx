@@ -19,7 +19,7 @@ export default function SignUp() {
             <h1 className="text-xl font-medium">Shadcn Admin</h1>
           </div>
         </div>
-        <div className="mx-auto flex w-full max-w-sm flex-col justify-center space-y-8">
+        <div className="mx-auto flex w-full max-w-sm flex-col justify-center space-y-14">
           <div className="flex flex-col text-start space-y-2">
             <h2 className="text-2xl font-semibold tracking-tight">Welcome</h2>
             <p className="text-muted-foreground text-lg">
