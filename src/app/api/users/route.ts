@@ -13,12 +13,12 @@ export async function GET(req: NextRequest) {
             ...(region.key === "central"
                 ? { area: null }
                 : {
-                      area: {
-                          [region.key]: currentUser?.area?.[
-                              region.key as keyof typeof currentUser.area
-                          ],
-                      },
-                  }),
+                    area: {
+                        [region.key]: currentUser?.area?.[
+                            region.key as keyof typeof currentUser.area
+                        ],
+                    },
+                }),
         },
         include: {
             email: true,
