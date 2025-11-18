@@ -1,51 +1,56 @@
 // Division
 model division {
-  id           String        @id @default(cuid())
-  name     String
+  id        String     @id @default(cuid())
+  name      String
   districts district[]
+  areas     area[]
 
   @@map("divisions")
 }
 
 // District
 model district {
-  id           String        @id @default(cuid())
-  name        String
-  divisionId  String
-  division    division  @relation(fields: [divisionId], references: [id])
-  upazilas    upazila[]
+  id         String    @id @default(cuid())
+  name       String
+  divisionId String
+  division   division  @relation(fields: [divisionId], references: [id])
+  upazilas   upazila[]
+  areas      area[]
 
   @@map("districts")
 }
 
 // Upazila or Pouroshava
 model upazila {
-  id           String        @id @default(cuid())
+  id         String   @id @default(cuid())
   name       String
   districtId String
-  district   district  @relation(fields: [districtId], references: [id])
+  district   district @relation(fields: [districtId], references: [id])
   unions     union[]
+  areas      area[]
 
   @@map("upazilas")
 }
 
 // Union / Ward
 model union {
-  id           String        @id @default(cuid())
-  name       String
-  upazilaId  String
-  upazila    upazila  @relation(fields: [upazilaId], references: [id])
-  units      polling_unit[]
+  id        String         @id @default(cuid())
+  name      String
+  upazilaId String
+  upazila   upazila        @relation(fields: [upazilaId], references: [id])
+  units     polling_unit[]
+  areas     area[]
 
   @@map("unions")
 }
 
 // Polling Station / Unit
 model polling_unit {
-  id           String        @id @default(cuid())
-  name     String
-  unionId  String
-  union    union    @relation(fields: [unionId], references: [id])
+  id      String @id @default(cuid())
+  name    String
+  unionId String
+  union   union  @relation(fields: [unionId], references: [id])
+  areas   area[]
 
   @@map("polling_units")
 }

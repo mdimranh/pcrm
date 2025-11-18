@@ -1,0 +1,52 @@
+model Organization {
+  id                   String                     @id @default(cuid())
+  name                 String
+  slug                 String                     @unique
+  domain               String?                    @unique
+  logo                 String?
+  metadata             Json?
+  members              Member[]
+  Role                 Role[]
+  createdAt            DateTime                   @default(now())
+  updatedAt            DateTime                   @updatedAt
+
+  @@index([slug])
+  @@index([domain])
+  @@map("organizations")
+}
+
+model Member {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  roleId         String?
+  role           Role?        @relation(fields: [roleId], references: [id])
+  userId         String       @unique
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
+  @@index([roleId])
+  @@map("members")
+}
+
+model Role {
+  id             String                @id @default(cuid())
+  name           String
+  description    String?
+  permissions    Json
+  isSystem       Boolean               @default(false)
+  isDefault      Boolean               @default(false)
+  members        Member[]
+  organizationId String
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  @@index([organizationId])
+  @@index([name])
+  @@map("roles")
+}

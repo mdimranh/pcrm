@@ -1,0 +1,90 @@
+model User {
+    id          String       @id @default(cuid())
+    firstName   String
+    middleName  String?
+    lastName    String
+    status      UserStatus   @default(PENDING)
+    createdAt   DateTime     @default(now())
+    updatedAt   DateTime     @updatedAt
+    password    String
+    email       Email?
+    membership  Member?
+    phoneNumber PhoneNumber?
+    gender      Gender?
+    nid         String       @unique
+    area        area?
+    sessions    Session[]
+
+    @@map("users")
+}
+
+enum Gender {
+    MALE
+    FEMALE
+    THIRD_GENDER
+}
+
+model area {
+    id            String        @id @default(cuid())
+    divisionId    String
+    division      division      @relation(fields: [divisionId], references: [id])
+    districtId    String?
+    district      district?     @relation(fields: [districtId], references: [id])
+    upazilaId     String?
+    upazila       upazila?      @relation(fields: [upazilaId], references: [id])
+    unionId       String?
+    union         union?        @relation(fields: [unionId], references: [id])
+    pollingUnitId String?
+    pollingUnit   polling_unit? @relation(fields: [pollingUnitId], references: [id])
+    userId        String        @unique
+    user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Email {
+    id         String   @id @default(cuid())
+    email      String   @unique
+    isVerified Boolean  @default(false)
+    userId     String   @unique
+    user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    @@index([userId])
+    @@map("emails")
+}
+
+model PhoneNumber {
+    id          String   @id @default(cuid())
+    phoneNumber String   @unique
+    isVerified  Boolean  @default(false)
+    userId      String   @unique
+    user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    @@index([userId])
+    @@map("phone_numbers")
+}
+
+model Session {
+    id        String   @id @default(cuid())
+    expiresAt DateTime
+    token     String   @unique
+    ipAddress String?
+    userAgent String?
+    userId    String
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([userId])
+    @@index([expiresAt])
+    @@map("sessions")
+}
+
+enum UserStatus {
+    ACTIVE
+    REJECTED
+    SUSPENDED
+    PENDING
+}

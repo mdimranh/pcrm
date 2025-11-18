@@ -33,3 +33,26 @@ export async function getPollingUnit(unionId: string) {
   });
   return pollingUnits;
 }
+
+export async function signUp(data: any) {
+  try {
+    const user = await fetch("http://localhost:3000/api/auth/signup", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    if (!user.ok) {
+      throw new Error("Failed to sign up. Try again later.");
+    }
+    const res = (await user.json()) as {
+      success: boolean;
+      error?: string;
+    };
+    if (res.success) {
+      return { success: true, message: "User signed up successfully." };
+    } else {
+      throw new Error(res.error || "Failed to sign up. Try again later.");
+    }
+  } catch (error: any) {
+    throw new Error(error.message || "Failed to sign up. Try again later.");
+  }
+}

@@ -20,13 +20,13 @@ export default function SignUp() {
           </div>
         </div>
         <div className="mx-auto flex w-full max-w-sm flex-col justify-center space-y-14">
-          <div className="flex flex-col text-start space-y-2">
+          {/* <div className="flex flex-col text-start space-y-2">
             <h2 className="text-2xl font-semibold tracking-tight">Welcome</h2>
             <p className="text-muted-foreground text-lg">
               Build more productively with developer-first database tooling.
               Sign up to get started.
             </p>
-          </div>
+          </div> */}
           <UserAuthForm />
           <p className="px-8 text-center text-sm text-muted-foreground">
             Already have an account?{" "}

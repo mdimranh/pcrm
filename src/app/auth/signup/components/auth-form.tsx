@@ -11,16 +11,26 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { cn, sleep } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Organization } from "@/core/db/client";
+import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, LogIn } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { signUp } from "../actions";
+import { OrgSelector } from "./org-select";
 import { UnitSelector } from "./unit-selector";
 
 const formSchema = z.object({
@@ -29,11 +39,18 @@ const formSchema = z.object({
   email: z.email({
     error: (iss) => (iss.input === "" ? "Please enter your email" : undefined),
   }),
+  phone: z.string().length(11, "Phone number must be 11 digits"),
+  nid: z
+    .string()
+    .min(10, "NID must be at least 10 digits")
+    .max(17, "NID must be at most 17 digits"),
+  gender: z.string().min(1, "Please select your gender"),
   password: z
     .string()
     .min(1, "Please enter your password")
     .min(7, "Password must be at least 7 characters long"),
-  divisionId: z.string().min(1, "Please select your division"),
+  organizationId: z.string().min(1, "Please select your organization"),
+  divisionId: z.string().optional(),
   districtId: z.string().optional(),
   upazilaId: z.string().optional(),
   unionId: z.string().optional(),
@@ -49,9 +66,24 @@ export function UserAuthForm({
   redirectTo,
   ...props
 }: UserAuthFormProps) {
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
   const { auth } = useAuthStore();
+
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [orgFetching, setOrgFetching] = useState<boolean>(false);
+  useEffect(() => {
+    async function LoaderOrganizations() {
+      setOrgFetching(true);
+      const org = await fetch("/api/auth/signup/organizations");
+      const data = (await org.json()) as Organization[];
+      setOrganizations(data);
+      setOrgFetching(false);
+    }
+    LoaderOrganizations();
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -59,7 +91,11 @@ export function UserAuthForm({
       firstName: "",
       lastName: "",
       email: "",
+      phone: "",
+      nid: "",
+      gender: "",
       password: "",
+      organizationId: "",
       divisionId: "",
       districtId: "",
       upazilaId: "",
@@ -71,7 +107,7 @@ export function UserAuthForm({
   function onSubmit(data: z.infer<typeof formSchema>) {
     setIsLoading(true);
 
-    toast.promise(sleep(2000), {
+    toast.promise(signUp(data), {
       loading: "Registering, please wait...",
       success: () => {
         setIsLoading(false);
@@ -94,9 +130,23 @@ export function UserAuthForm({
 
         return `Welcome back, ${data.email}!`;
       },
-      error: "Error",
+      error: (err) => {
+        setIsLoading(false);
+        return err.message;
+      },
     });
   }
+
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      if (currentStep === 1) {
+        setIsButtonDisabled(!value.organizationId);
+      }
+      return true;
+    });
+
+    return () => subscription.unsubscribe();
+  }, [currentStep, form, isLoading]);
 
   return (
     <Form {...form}>
@@ -105,71 +155,182 @@ export function UserAuthForm({
         className={cn("grid gap-3", className)}
         {...props}
       >
-        <div className="flex w-full gap-2 justify-between">
-          <FormField
-            control={form.control}
-            name="firstName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>First Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="John" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+        {currentStep === 1 && (
+          <OrgSelector
+            organizations={organizations}
+            fetching={orgFetching}
+            setValue={form.setValue}
+            form={form}
           />
-          <FormField
-            control={form.control}
-            name="lastName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Last Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Doe" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        )}
+        {currentStep === 2 && (
+          <UnitSelector setValue={form.setValue} form={form} />
+        )}
+        {currentStep === 3 && (
+          <>
+            <div className="flex w-full gap-2 justify-between">
+              <FormField
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>First Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Doe" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="name@example.com" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="01234567890"
+                      {...field}
+                      type="text"
+                      inputMode="numeric"
+                      onInput={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        target.value = target.value
+                          .replace(/[^0-9]/g, "")
+                          .slice(0, 11);
+                        field.onChange(target.value);
+                      }}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <div className="flex w-full gap-2 justify-between">
+              <FormField
+                control={form.control}
+                name="nid"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>NID Number</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="1234567890"
+                        {...field}
+                        type="text"
+                        inputMode="numeric"
+                        onInput={(e) => {
+                          const target = e.target as HTMLInputElement;
+                          target.value = target.value
+                            .replace(/[^0-9]/g, "")
+                            .slice(0, 17);
+                          field.onChange(target.value);
+                        }}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="gender"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>Gender</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select your gender" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
+                        <SelectItem value="other">Third Gender</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+            </div>
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem className="relative">
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <PasswordInput placeholder="********" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                  <Link
+                    href="/forgot-password"
+                    className="text-muted-foreground absolute end-0 -top-0.5 text-sm font-medium hover:opacity-75"
+                  >
+                    Forgot password?
+                  </Link>
+                </FormItem>
+              )}
+            />
+          </>
+        )}
+        <div
+          className={`flex items-center gap-2 mt-2 ${
+            currentStep === 1 ? "justify-center" : "justify-between"
+          }`}
+        >
+          {currentStep !== 1 && (
+            <Button
+              onClick={() => setCurrentStep(currentStep - 1)}
+              disabled={currentStep === 1}
+              type="button"
+            >
+              Back
+            </Button>
+          )}
+          <Button
+            className={`${currentStep === 1 ? "w-full" : ""}`}
+            type="button"
+            onClick={() => {
+              if (currentStep === 3) {
+                form.handleSubmit(onSubmit)();
+              } else {
+                setCurrentStep(currentStep + 1);
+              }
+            }}
+            disabled={isButtonDisabled || isLoading}
+          >
+            {isLoading ? <Loader2 className="animate-spin" /> : <LogIn />}
+            {currentStep === 3 ? "Sign up" : "Next"}
+          </Button>
         </div>
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder="name@example.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <UnitSelector setValue={form.setValue} form={form} />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem className="relative">
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <PasswordInput placeholder="********" {...field} />
-              </FormControl>
-              <FormMessage />
-              <Link
-                href="/forgot-password"
-                className="text-muted-foreground absolute end-0 -top-0.5 text-sm font-medium hover:opacity-75"
-              >
-                Forgot password?
-              </Link>
-            </FormItem>
-          )}
-        />
-        <Button className="mt-2" disabled={isLoading} type="submit">
-          {isLoading ? <Loader2 className="animate-spin" /> : <LogIn />}
-          Sign up
-        </Button>
       </form>
     </Form>
   );

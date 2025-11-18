@@ -1,13 +1,7 @@
 "use client";
 
 import { Field, FieldLabel } from "@/components/ui/field";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { FormControl } from "@/components/ui/form";
 import {
   Select,
   SelectContent,
@@ -15,14 +9,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useEffect, useState } from "react";
 import {
   getDistrict,
   getDivision,
   getPollingUnit,
   getUnion,
   getUpazila,
-} from "@/core/components/auth/signup/actions";
-import { useEffect, useState } from "react";
+} from "../actions";
 
 export function UnitSelector({ setValue, form }: { setValue: any; form: any }) {
   const [divisions, setDivisions] = useState<{ id: string; name: string }[]>(
@@ -80,38 +74,30 @@ export function UnitSelector({ setValue, form }: { setValue: any; form: any }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
-        <FormField
-          control={form.control}
-          name="divisionId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Division</FormLabel>
-              <Select
-                onValueChange={(value) => {
-                  field.onChange(value);
-                  handleDivision(value);
-                }}
-                value={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger className="w-full">
-                    {" "}
-                    {/* ✅ Add here */}
-                    <SelectValue placeholder="Select Division" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {divisions.map((d) => (
-                    <SelectItem key={d.id} value={String(d.id)}>
-                      {d.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <Field>
+          <FieldLabel htmlFor="checkout-7j9-exp-year-f59">Division</FieldLabel>
+          {/* District */}
+          <Select
+            onValueChange={(value) => {
+              handleDivision(value);
+            }}
+          >
+            <FormControl>
+              <SelectTrigger className="w-full">
+                {" "}
+                {/* ✅ Add here */}
+                <SelectValue placeholder="Select Division" />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {divisions.map((d) => (
+                <SelectItem key={d.id} value={String(d.id)}>
+                  {d.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
         <Field>
           <FieldLabel htmlFor="checkout-7j9-exp-year-f59">District</FieldLabel>
           {/* District */}
