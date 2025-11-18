@@ -1,14 +1,14 @@
 model Organization {
-  id                   String                     @id @default(cuid())
-  name                 String
-  slug                 String                     @unique
-  domain               String?                    @unique
-  logo                 String?
-  metadata             Json?
-  members              Member[]
-  Role                 Role[]
-  createdAt            DateTime                   @default(now())
-  updatedAt            DateTime                   @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  domain    String?  @unique
+  logo      String?
+  metadata  Json?
+  members   Member[]
+  Role      Role[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([slug])
   @@index([domain])
@@ -23,6 +23,7 @@ model Member {
   role           Role?        @relation(fields: [roleId], references: [id])
   userId         String       @unique
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isAdmin        Boolean      @default(false)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -34,17 +35,16 @@ model Member {
 }
 
 model Role {
-  id             String                @id @default(cuid())
+  id             String       @id @default(cuid())
   name           String
   description    String?
-  permissions    Json
-  isSystem       Boolean               @default(false)
-  isDefault      Boolean               @default(false)
+  isSystem       Boolean      @default(false)
+  isSuperAdmin   Boolean      @default(false)
   members        Member[]
   organizationId String
-  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  createdAt      DateTime              @default(now())
-  updatedAt      DateTime              @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   @@index([organizationId])
   @@index([name])

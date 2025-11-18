@@ -22,7 +22,7 @@ export default function Dashboard() {
   return (
     <>
       {/* ===== Top Heading ===== */}
-      <Header>
+      {/* <Header>
         <TopNav links={topNav} />
         <div className="ms-auto flex items-center space-x-4">
           <Search />
@@ -30,7 +30,7 @@ export default function Dashboard() {
           <ConfigDrawer />
           <ProfileDropdown />
         </div>
-      </Header>
+      </Header> */}
 
       {/* ===== Main ===== */}
       <Main>

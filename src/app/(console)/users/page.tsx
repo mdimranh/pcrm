@@ -12,11 +12,31 @@ import { UsersDialogs } from "./components/users-dialogs";
 import { UsersPrimaryButtons } from "./components/users-primary-buttons";
 import { UsersProvider } from "./components/users-provider";
 import { UsersTable } from "./components/users-table";
-import { users } from "./data/users";
+import { useEffect, useState } from "react";
+import type { User } from "./data/schema";
 
 export default function Users() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const [data, setData] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/users", { credentials: "include" });
+        const json = (await res.json()) as User[];
+        if (!cancelled) setData(json);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // convert URLSearchParams to an object if needed
   const search: Record<string, string> = {};
@@ -69,15 +89,6 @@ export default function Users() {
 
   return (
     <UsersProvider>
-      <Header fixed>
-        <Search />
-        <div className="ms-auto flex items-center space-x-4">
-          <ThemeSwitch />
-          <ConfigDrawer />
-          <ProfileDropdown />
-        </div>
-      </Header>
-
       <Main className="flex flex-1 flex-col gap-4 sm:gap-6">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
@@ -89,7 +100,7 @@ export default function Users() {
           <UsersPrimaryButtons />
         </div>
 
-        <UsersTable data={users} search={search} navigate={navigate} />
+        <UsersTable data={data} search={search} navigate={navigate} />
       </Main>
 
       <UsersDialogs />

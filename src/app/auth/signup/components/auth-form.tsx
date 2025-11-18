@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Organization } from "@/core/db/client";
+import { Organization, Role } from "@/core/db/client";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -55,6 +55,7 @@ const formSchema = z.object({
   upazilaId: z.string().optional(),
   unionId: z.string().optional(),
   pollingUnitId: z.string().optional(),
+  designation: z.string().min(1, "Please select your designation"),
 });
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLFormElement> {
@@ -74,6 +75,8 @@ export function UserAuthForm({
 
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [orgFetching, setOrgFetching] = useState<boolean>(false);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [rolesFetching, setRolesFetching] = useState<boolean>(false);
   useEffect(() => {
     async function LoaderOrganizations() {
       setOrgFetching(true);
@@ -82,7 +85,15 @@ export function UserAuthForm({
       setOrganizations(data);
       setOrgFetching(false);
     }
+    async function LoadRoles() {
+      setRolesFetching(true);
+      const res = await fetch("/api/auth/signup/roles");
+      const data = (await res.json()) as Role[];
+      setRoles(data);
+      setRolesFetching(false);
+    }
     LoaderOrganizations();
+    LoadRoles();
   }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -101,6 +112,7 @@ export function UserAuthForm({
       upazilaId: "",
       unionId: "",
       pollingUnitId: "",
+      designation: "",
     },
   });
 
@@ -282,6 +294,27 @@ export function UserAuthForm({
             </div>
             <FormField
               control={form.control}
+              name="designation"
+              render={({ field }) => (
+                <FormItem className="flex-1">
+                  <FormLabel>Designation</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select your designation" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {roles.map((r) => (
+                        <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="password"
               render={({ field }) => (
                 <FormItem className="relative">
@@ -302,9 +335,8 @@ export function UserAuthForm({
           </>
         )}
         <div
-          className={`flex items-center gap-2 mt-2 ${
-            currentStep === 1 ? "justify-center" : "justify-between"
-          }`}
+          className={`flex items-center gap-2 mt-2 ${currentStep === 1 ? "justify-center" : "justify-between"
+            }`}
         >
           {currentStep !== 1 && (
             <Button

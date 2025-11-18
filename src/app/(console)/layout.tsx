@@ -9,6 +9,12 @@ import { SearchProvider } from "@/context/search-provider";
 import { cn } from "@/lib/utils";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
+import { Search } from "@/components/search";
+import { ThemeSwitch } from "@/components/theme-switch";
+import { ConfigDrawer } from "@/components/config-drawer";
+import { ProfileDropdown } from "@/components/profile-dropdown";
+import { Header } from "@/components/layout/header";
+import { TopNav } from "@/components/layout/top-nav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,6 +52,15 @@ export default function RootLayout({
               "peer-data-[variant=inset]:has-[[data-layout=fixed]]:h-[calc(100svh-(var(--spacing)*4))]"
             )}
           >
+            <Header>
+              <TopNav links={[]} />
+              <div className="ms-auto flex items-center space-x-4">
+                <Search />
+                <ThemeSwitch />
+                <ConfigDrawer />
+                <ProfileDropdown />
+              </div>
+            </Header>
             {children}
           </SidebarInset>
         </SidebarProvider>

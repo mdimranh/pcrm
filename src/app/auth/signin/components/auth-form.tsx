@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { cn, sleep } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, LogIn } from "lucide-react";
@@ -56,30 +56,38 @@ export function UserAuthForm({
   function onSubmit(data: z.infer<typeof signSchema>) {
     setIsLoading(true);
 
-    toast.promise(sleep(2000), {
+    const signInPromise = (async () => {
+      const res = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      const json = await res.json() as { success: boolean; error?: string; accessToken?: string };
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Error, please try again");
+      }
+
+      const exp = Date.now() + 24 * 60 * 60 * 1000;
+      const user = { accountNo: "ACC001", email: data.email, role: ["user"], exp };
+      auth.setUser(user);
+      if (json.accessToken) auth.setAccessToken(json.accessToken);
+
+      const targetPath = redirectTo || "/";
+      router.push(targetPath);
+      return `Welcome back, ${data.email}!`;
+    })();
+
+    toast.promise(signInPromise, {
       loading: "Signing in, please wait...",
-      success: () => {
+      success: (msg) => {
         setIsLoading(false);
-
-        // Mock successful authentication with expiry computed at success time
-        const mockUser = {
-          accountNo: "ACC001",
-          email: data.email,
-          role: ["user"],
-          exp: Date.now() + 24 * 60 * 60 * 1000, // 24 hours from now
-        };
-
-        // Set user and access token
-        auth.setUser(mockUser);
-        auth.setAccessToken("mock-access-token");
-
-        // Redirect to the stored location or default to dashboard
-        const targetPath = redirectTo || "/";
-        router.push(targetPath);
-
-        return `Welcome back, ${data.email}!`;
+        return msg;
       },
-      error: "Error, please try again",
+      error: (err) => {
+        setIsLoading(false);
+        return err.message || "Error, please try again";
+      },
     });
   }
 

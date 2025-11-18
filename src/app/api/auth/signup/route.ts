@@ -83,8 +83,7 @@ export async function createUser(data: SignupData): Promise<SignupResult> {
         data: {
           userId: user.id,
           organizationId: validatedData.organizationId,
-          // roleId can be set later or fetch default role
-          //   roleId: await getDefaultRoleId(tx, validatedData.organizationId),
+          roleId: validatedData.designation,
         },
       });
 

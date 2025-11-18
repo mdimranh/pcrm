@@ -23,4 +23,5 @@ export const signupSchema = z.object({
   upazilaId: z.string().optional(),
   unionId: z.string().optional(),
   pollingUnitId: z.string().optional(),
+  designation: z.string().min(1, "Please select your designation"),
 });

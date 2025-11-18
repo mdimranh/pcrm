@@ -10,6 +10,7 @@ import { ThemeProvider } from "next-themes";
 import { Geist, Geist_Mono } from "next/font/google";
 import { cookies } from "next/headers";
 import NextTopLoader from "nextjs-toploader";
+import { CurrentUserServerProvider } from "@/context/current-user-server";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -37,7 +38,6 @@ export default async function RootLayout({
   const collapsible: Collapsible = cookieData.get("layout_collapsible")
     ?.value as Collapsible;
   const variant: Variant = cookieData.get("layout_variant")?.value as Variant;
-  console.log("Collapsible --------------> ", collapsible);
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -57,7 +57,8 @@ export default async function RootLayout({
             defaultVariant={variant}
             state={defaultOpen}
           >
-            <FontProvider>{children}</FontProvider>
+            <FontProvider>
+              <CurrentUserServerProvider>{children}</CurrentUserServerProvider></FontProvider>
             <Toaster position="top-right" richColors />
           </LayoutProvider>
         </ThemeProvider>
