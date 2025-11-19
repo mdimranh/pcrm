@@ -14,6 +14,8 @@ model User {
     nid         String       @unique
     area        area?
     sessions    Session[]
+    candidates  Candidate[]
+    votes       Vote[]
 
     @@map("users")
 }
