@@ -74,7 +74,7 @@ export function CandidateApproval({ election, onUpdate }: CandidateApprovalProps
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to update candidate status");
+        throw new Error((error as { error?: string }).error || "Failed to update candidate status");
       }
 
       toast.success(
