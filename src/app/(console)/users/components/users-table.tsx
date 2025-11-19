@@ -51,6 +51,8 @@ export function UsersTable({ data, roles, search, loading, navigate }: DataTable
 
   // Synced with URL states (keys/defaults mirror users route search schema)
   const {
+    globalFilter,
+    onGlobalFilterChange,
     columnFilters,
     onColumnFiltersChange,
     pagination,
@@ -60,16 +62,22 @@ export function UsersTable({ data, roles, search, loading, navigate }: DataTable
     search,
     navigate,
     pagination: { defaultPage: 1, defaultPageSize: 10 },
-    globalFilter: { enabled: false },
+    globalFilter: { enabled: true, key: "q" },
     columnFilters: [
-      // fullname per-column text filter
-      { columnId: "fullName", searchKey: "fullName", type: "string" },
       { columnId: "status", searchKey: "status", type: "array" },
       { columnId: "role", searchKey: "role", type: "array" },
     ],
   });
 
   // eslint-disable-next-line react-hooks/incompatible-library
+  const globalFilterFn = (row: any, _columnId: string, filterValue: string) => {
+    const q = String(filterValue ?? '').toLowerCase();
+    if (!q) return true;
+    const u = row.original as { firstName?: string; lastName?: string; email?: string; phoneNumber?: string };
+    const hay = `${u.firstName ?? ''} ${u.lastName ?? ''} ${u.email ?? ''} ${u.phoneNumber ?? ''}`.toLowerCase();
+    return hay.includes(q);
+  };
+
   const table = useReactTable({
     data,
     columns,
@@ -79,6 +87,7 @@ export function UsersTable({ data, roles, search, loading, navigate }: DataTable
       rowSelection,
       columnFilters,
       columnVisibility,
+      globalFilter,
     },
     enableRowSelection: true,
     onPaginationChange,
@@ -86,6 +95,8 @@ export function UsersTable({ data, roles, search, loading, navigate }: DataTable
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
+    onGlobalFilterChange,
+    globalFilterFn,
     getPaginationRowModel: getPaginationRowModel(),
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -107,8 +118,7 @@ export function UsersTable({ data, roles, search, loading, navigate }: DataTable
     >
       <DataTableToolbar
         table={table}
-        searchPlaceholder="Filter users..."
-        searchKey="fullName"
+        searchPlaceholder="Search name, email, phone..."
         filters={[
           {
             columnId: "status",

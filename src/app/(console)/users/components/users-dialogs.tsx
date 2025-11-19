@@ -11,6 +11,7 @@ export function UsersDialogs({ roles }: { roles?: Role[] }) {
       <UsersActionDialog
         key='user-add'
         open={open === 'add'}
+        roles={roles}
         onOpenChange={() => setOpen('add')}
       />
 

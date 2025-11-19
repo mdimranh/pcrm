@@ -37,6 +37,32 @@ const formSchema = z
     }),
     role: z.string().min(1, 'Role is required.'),
     isEdit: z.boolean(),
+    password: z.string().optional(),
+    confirmPassword: z.string().optional(),
+  })
+  .superRefine((val, ctx) => {
+    if (!val.isEdit) {
+      if (!val.password || val.password.length < 7) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Password is required and must be at least 7 characters.',
+          path: ['password'],
+        })
+      }
+      if (!val.confirmPassword) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Confirm password is required.',
+          path: ['confirmPassword'],
+        })
+      } else if (val.confirmPassword !== val.password) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Passwords do not match.',
+          path: ['confirmPassword'],
+        })
+      }
+    }
   })
 type UserForm = z.infer<typeof formSchema>
 
@@ -67,6 +93,8 @@ export function UsersActionDialog({
         email: '',
         role: '',
         phoneNumber: '',
+        password: '',
+        confirmPassword: '',
         isEdit,
       },
   })
@@ -176,6 +204,46 @@ export function UsersActionDialog({
                   </FormItem>
                 )}
               />
+
+              {!isEdit && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name='password'
+                    render={({ field }) => (
+                      <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
+                        <FormLabel className='col-span-2 text-end'>Password</FormLabel>
+                        <FormControl>
+                          <PasswordInput
+                            placeholder='••••••••'
+                            className='col-span-4'
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage className='col-span-4 col-start-3' />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='confirmPassword'
+                    render={({ field }) => (
+                      <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
+                        <FormLabel className='col-span-2 text-end'>Confirm Password</FormLabel>
+                        <FormControl>
+                          <PasswordInput
+                            placeholder='••••••••'
+                            className='col-span-4'
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage className='col-span-4 col-start-3' />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
               <FormField
                 control={form.control}
                 name='role'
