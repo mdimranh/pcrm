@@ -34,5 +34,6 @@ export async function getCurrentUserServer(): Promise<CurrentUser | null> {
         roleId: u.membership?.roleId ?? undefined,
         membership: u.membership ?? undefined,
         area: u.area ?? undefined,
+        isSuperAdmin: u.isSuperAdmin,
     };
 }

@@ -16,6 +16,8 @@ import {
 } from "@/lib/election-utils";
 import { PositionsList } from "./positions-list";
 import { CandidatesManagement } from "./candidates-management";
+import { VotingPanel } from "./voting-panel";
+import { ElectionAdmin } from "./election-admin";
 
 interface ElectionDetailsProps {
   electionId: string;
@@ -38,7 +40,7 @@ export function ElectionDetails({ electionId }: ElectionDetailsProps) {
         throw new Error("Failed to fetch election");
       }
       const data = await response.json();
-      setElection(data.data);
+      setElection((data as { data: Election }).data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
