@@ -54,6 +54,21 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               <UserX size={16} />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
+          {
+            row.original.status === "PENDING" && (
+              <DropdownMenuItem
+                onClick={() => {
+                  setCurrentRow(row.original)
+                  setOpen('approve')
+                }}
+              >
+                Approve
+                <DropdownMenuShortcut>
+                  <UserPen size={16} />
+                </DropdownMenuShortcut>
+              </DropdownMenuItem>
+            )
+          }
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => {

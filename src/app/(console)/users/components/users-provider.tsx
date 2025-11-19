@@ -4,7 +4,7 @@ import { Users } from "@/app/api/users/route";
 import useDialogState from "@/hooks/use-dialog-state";
 import React, { useState } from "react";
 
-type UsersDialogType = "invite" | "add" | "edit" | "delete" | "suspend";
+type UsersDialogType = "invite" | "add" | "edit" | "approve" | "delete" | "suspend";
 
 type UsersContextType = {
   open: UsersDialogType | null;

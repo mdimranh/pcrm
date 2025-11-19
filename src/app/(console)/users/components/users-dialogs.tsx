@@ -10,6 +10,7 @@ export function UsersDialogs({ roles }: { roles?: Role[] }) {
   return (
     <>
       <UsersActionDialog
+        action='add'
         key='user-add'
         open={open === 'add'}
         roles={roles}
@@ -26,10 +27,25 @@ export function UsersDialogs({ roles }: { roles?: Role[] }) {
         <>
           <UsersActionDialog
             key={`user-edit-${currentRow.id}`}
+            action='edit'
             open={open === 'edit'}
             roles={roles}
             onOpenChange={() => {
               setOpen('edit')
+              setTimeout(() => {
+                setCurrentRow(null)
+              }, 500)
+            }}
+            currentRow={currentRow}
+          />
+
+          <UsersActionDialog
+            key={`user-approve-${currentRow.id}`}
+            action='approve'
+            open={open === 'approve'}
+            roles={roles}
+            onOpenChange={() => {
+              setOpen('approve')
               setTimeout(() => {
                 setCurrentRow(null)
               }, 500)

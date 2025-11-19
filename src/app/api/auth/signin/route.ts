@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        const res = NextResponse.json({ success: true, userId: emailRecord.user.id });
+        const res = NextResponse.json({ success: true, userId: emailRecord.user.id, firstName: emailRecord.user.firstName, lastName: emailRecord.user.lastName });
         const isProd = process.env.NODE_ENV === "production";
         res.cookies.set("access_token", accessToken, {
             httpOnly: true,

@@ -107,7 +107,7 @@ export const usersColumns: ColumnDef<Users>[] = [
       )
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id))
+      return value.includes((row.getValue(id) as (Member & { role: Role }))?.role?.name || '');
     },
     enableSorting: false,
     enableHiding: false,

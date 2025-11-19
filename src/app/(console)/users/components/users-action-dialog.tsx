@@ -28,6 +28,8 @@ import { type User } from '../data/schema'
 import { Role } from '@/core/db/client'
 import { Users } from '@/app/api/users/route'
 import { UnitSelector } from '@/app/auth/signup/components/unit-selector'
+import { useState } from 'react'
+import { Loader2 } from 'lucide-react'
 
 const formSchema = z
   .object({
@@ -76,6 +78,7 @@ const formSchema = z
 type UserForm = z.infer<typeof formSchema>
 
 type UserActionDialogProps = {
+  action: 'edit' | 'approve' | 'add'
   currentRow?: Users
   open: boolean
   roles?: Role[]
@@ -83,12 +86,15 @@ type UserActionDialogProps = {
 }
 
 export function UsersActionDialog({
+  action,
   currentRow,
   open,
   roles,
   onOpenChange,
 }: UserActionDialogProps) {
+  const [loading, setLoading] = useState(true)
   const isEdit = !!currentRow
+  const isPendingEdit = action === 'approve'
   const form = useForm<UserForm>({
     resolver: zodResolver(formSchema),
     defaultValues: isEdit
@@ -99,7 +105,7 @@ export function UsersActionDialog({
         phoneNumber: currentRow?.phoneNumber?.phoneNumber ?? '',
         nid: (currentRow as Users)?.nid ?? '',
         gender: (currentRow as Users)?.gender ?? '',
-        designation: (currentRow as Users)?.membership?.role?.name ?? '',
+        designation: (currentRow as Users)?.membership?.role?.id ?? '',
         divisionId: (currentRow as Users)?.area?.divisionId ?? undefined,
         districtId: (currentRow as Users)?.area?.districtId ?? undefined,
         upazilaId: (currentRow as Users)?.area?.upazilaId ?? undefined,
@@ -122,7 +128,7 @@ export function UsersActionDialog({
         pollingUnitId: undefined,
         password: '',
         confirmPassword: '',
-        isEdit,
+        isEdit
       },
   })
 
@@ -142,18 +148,24 @@ export function UsersActionDialog({
     >
       <DialogContent className='sm:max-w-lg'>
         <DialogHeader className='text-start'>
-          <DialogTitle>{isEdit ? 'Edit User' : 'Add New User'}</DialogTitle>
+          <DialogTitle>{isPendingEdit ? 'Approve User' : isEdit ? 'Edit User' : 'Add New User'}</DialogTitle>
           <DialogDescription>
             {isEdit ? 'Update the user here. ' : 'Create new user here. '}
             Click save when you&apos;re done.
           </DialogDescription>
         </DialogHeader>
-        <div className='w-[calc(100%+0.75rem)] overflow-y-auto py-1 pe-3'>
+        <div className='w-[calc(100%+0.75rem)] overflow-y-auto py-1 pe-3 relative'>
+          {(loading) && (
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground absolute left-0 top-0 right-0 bottom-0">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading user details...
+            </div>
+          )}
           <Form {...form}>
             <form
               id='user-form'
               onSubmit={form.handleSubmit(onSubmit)}
-              className='space-y-4 px-0.5'
+              className={`space-y-4 px-0.5 ${loading ? 'opacity-20' : ''}`}
             >
               <FormField
                 control={form.control}
@@ -283,9 +295,9 @@ export function UsersActionDialog({
                       onValueChange={field.onChange}
                       placeholder='Select a designation'
                       className='col-span-4 w-full'
-                      items={roles?.map(({ name }) => ({
+                      items={roles?.map(({ name, id }) => ({
                         label: name,
-                        value: name,
+                        value: id,
                       }))}
                     />
                     <FormMessage className='col-span-4 col-start-3' />
@@ -333,15 +345,15 @@ export function UsersActionDialog({
               )}
 
               <div className='px-0.5'>
-                <UnitSelector setValue={form.setValue as any} form={form as any} />
+                <UnitSelector setValue={form.setValue as any} form={form as any} setLoading={setLoading} />
               </div>
             </form>
           </Form>
         </div>
         <DialogFooter>
           <Button variant='outline' onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button type='submit' form='user-form'>
-            Save changes
+          <Button type='submit' form='user-form' disabled={loading}>
+            {isPendingEdit ? 'Approve' : 'Save changes'}
           </Button>
         </DialogFooter>
       </DialogContent>

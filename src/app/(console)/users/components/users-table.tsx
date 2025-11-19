@@ -65,7 +65,7 @@ export function UsersTable({ data, roles, search, loading, navigate }: DataTable
     globalFilter: { enabled: true, key: "q" },
     columnFilters: [
       { columnId: "status", searchKey: "status", type: "array" },
-      { columnId: "role", searchKey: "role", type: "array" },
+      { columnId: "designation", searchKey: "designation", type: "array" },
     ],
   });
 
@@ -126,8 +126,8 @@ export function UsersTable({ data, roles, search, loading, navigate }: DataTable
             options: status.map((status) => ({ label: status, value: status })),
           },
           {
-            columnId: "role",
-            title: "Role",
+            columnId: "membership",
+            title: "Designation",
             options: roles.map((role) => ({ label: role.name, value: role.name })),
           },
         ]}
