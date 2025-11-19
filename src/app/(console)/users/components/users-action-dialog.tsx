@@ -26,6 +26,7 @@ import { PasswordInput } from '@/components/password-input'
 import { SelectDropdown } from '@/components/select-dropdown'
 import { type User } from '../data/schema'
 import { Role } from '@/core/db/client'
+import { Users } from '@/app/api/users/route'
 
 const formSchema = z
   .object({
@@ -67,7 +68,7 @@ const formSchema = z
 type UserForm = z.infer<typeof formSchema>
 
 type UserActionDialogProps = {
-  currentRow?: User
+  currentRow?: Users
   open: boolean
   roles?: Role[]
   onOpenChange: (open: boolean) => void

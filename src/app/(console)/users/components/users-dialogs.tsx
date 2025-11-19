@@ -3,6 +3,7 @@ import { UsersActionDialog } from './users-action-dialog'
 import { UsersDeleteDialog } from './users-delete-dialog'
 import { UsersInviteDialog } from './users-invite-dialog'
 import { useUsers } from './users-provider'
+import { UsersSuspendDialog } from './users-suspend-dialog'
 
 export function UsersDialogs({ roles }: { roles?: Role[] }) {
   const { open, setOpen, currentRow, setCurrentRow } = useUsers()
@@ -41,6 +42,18 @@ export function UsersDialogs({ roles }: { roles?: Role[] }) {
             open={open === 'delete'}
             onOpenChange={() => {
               setOpen('delete')
+              setTimeout(() => {
+                setCurrentRow(null)
+              }, 500)
+            }}
+            currentRow={currentRow}
+          />
+
+          <UsersSuspendDialog
+            key={`user-suspend-${currentRow.id}`}
+            open={open === 'suspend'}
+            onOpenChange={() => {
+              setOpen('suspend')
               setTimeout(() => {
                 setCurrentRow(null)
               }, 500)

@@ -24,13 +24,13 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
-import { type User } from "../data/schema";
 import { DataTableBulkActions } from "./data-table-bulk-actions";
 import { usersColumns as columns } from "./users-columns";
 import { Role, UserStatus } from "@/core/db/client";
+import { Users } from "@/app/api/users/route";
 
 type DataTableProps = {
-  data: User[];
+  data: Users[];
   search: Record<string, unknown>;
   loading: boolean;
   navigate: NavigateFn;

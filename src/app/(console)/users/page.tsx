@@ -15,12 +15,13 @@ import { UsersTable } from "./components/users-table";
 import { useEffect, useState } from "react";
 import type { User } from "./data/schema";
 import { Role } from "@/core/db/client";
+import { Users as UsersType } from "@/app/api/users/route";
 
 export default function Users() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [data, setData] = useState<User[]>([]);
+  const [data, setData] = useState<UsersType[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
 
   const [loading, setLoading] = useState<boolean>(true);
@@ -33,7 +34,7 @@ export default function Users() {
           fetch("/api/users", { credentials: "include" }),
           fetch("/api/roles")
         ]);
-        const usersJson = (await usersRes.json()) as User[];
+        const usersJson = (await usersRes.json()) as UsersType[];
         const rolesJson = (await rolesRes.json()) as { data: Role[] };
 
         if (!cancelled) {

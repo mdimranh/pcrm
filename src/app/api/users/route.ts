@@ -3,6 +3,13 @@ import { NextRequest, NextResponse } from "next/server";
 import db from "@/core/db";
 import { getCurrentUserServer } from "@/core/auth/current-user-server";
 import { userReagion } from "@/utils/region";
+import { Role, User } from "@/core/db/client";
+
+export type Users = User & {
+    email: { email: string };
+    phoneNumber: { phoneNumber: string };
+    membership: { role: Role };
+};
 
 export async function GET(req: NextRequest) {
     const currentUser = await getCurrentUserServer();
@@ -27,25 +34,5 @@ export async function GET(req: NextRequest) {
         },
         orderBy: { createdAt: "desc" },
     });
-
-    const mapStatus: Record<string, "active" | "inactive" | "invited" | "suspended"> = {
-        ACTIVE: "active",
-        SUSPENDED: "suspended",
-        REJECTED: "inactive",
-        PENDING: "invited",
-    };
-
-    const data = users.map((u) => ({
-        id: u.id,
-        firstName: u.firstName,
-        lastName: u.lastName,
-        email: u.email?.email ?? "",
-        phoneNumber: u.phoneNumber?.phoneNumber ?? "",
-        status: u.status,
-        role: u.membership?.role?.name,
-        createdAt: u.createdAt,
-        updatedAt: u.updatedAt,
-    }));
-
-    return NextResponse.json(data);
+    return NextResponse.json(users as Users[]);
 }
