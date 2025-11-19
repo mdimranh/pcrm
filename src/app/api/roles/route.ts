@@ -30,9 +30,9 @@ export async function GET(req: NextRequest) {
 
         // Fetch all roles for the organization
         const roles = await db.role.findMany({
-            where: {
-                organizationId: membership.organizationId,
-            },
+            // where: {
+            //     organizationId: membership.organizationId,
+            // },
             select: {
                 id: true,
                 name: true,

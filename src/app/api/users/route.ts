@@ -3,12 +3,29 @@ import { NextRequest, NextResponse } from "next/server";
 import db from "@/core/db";
 import { getCurrentUserServer } from "@/core/auth/current-user-server";
 import { userReagion } from "@/utils/region";
-import { Role, User } from "@/core/db/client";
+import { area, Role, User } from "@/core/db/client";
 
 export type Users = User & {
     email: { email: string };
     phoneNumber: { phoneNumber: string };
     membership: { role: Role };
+    area: area & {
+        division: {
+            name: string;
+        },
+        district: {
+            name: string;
+        },
+        upazila: {
+            name: string;
+        },
+        union: {
+            name: string;
+        },
+        pollingUnit: {
+            name: string;
+        },
+    };
 };
 
 export async function GET(req: NextRequest) {
@@ -31,6 +48,35 @@ export async function GET(req: NextRequest) {
             email: true,
             phoneNumber: true,
             membership: { include: { role: true } },
+            area: {
+                include: {
+                    division: {
+                        select: {
+                            name: true,
+                        },
+                    },
+                    district: {
+                        select: {
+                            name: true,
+                        },
+                    },
+                    upazila: {
+                        select: {
+                            name: true,
+                        },
+                    },
+                    union: {
+                        select: {
+                            name: true,
+                        },
+                    },
+                    pollingUnit: {
+                        select: {
+                            name: true,
+                        },
+                    },
+                },
+            },
         },
         orderBy: { createdAt: "desc" },
     });

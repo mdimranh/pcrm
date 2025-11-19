@@ -95,14 +95,14 @@ export const usersColumns: ColumnDef<Users>[] = [
     enableSorting: false,
   },
   {
-    accessorKey: 'role',
+    accessorKey: 'membership',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Role' />
+      <DataTableColumnHeader column={column} title='Designation' />
     ),
     cell: ({ row }) => {
       return (
         <div className='flex items-center gap-x-2'>
-          <span className='text-sm capitalize'>{(row.getValue('membership') as Member).role.name}</span>
+          <span className='text-sm capitalize'>{(row.getValue('membership') as (Member & { role: Role }))?.role?.name}</span>
         </div>
       )
     },

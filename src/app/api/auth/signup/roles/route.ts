@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
     const roles = await db.role.findMany({
         where: {
             isSystem: false,
-            ...(org ? { organizationId: org } : {}),
+            // ...(org ? { organizationId: org } : {}),
         },
         orderBy: { name: "asc" },
     });

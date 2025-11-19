@@ -27,6 +27,7 @@ import { SelectDropdown } from '@/components/select-dropdown'
 import { type User } from '../data/schema'
 import { Role } from '@/core/db/client'
 import { Users } from '@/app/api/users/route'
+import { UnitSelector } from '@/app/auth/signup/components/unit-selector'
 
 const formSchema = z
   .object({
@@ -36,7 +37,14 @@ const formSchema = z
     email: z.email({
       error: (iss) => (iss.input === '' ? 'Email is required.' : undefined),
     }),
-    role: z.string().min(1, 'Role is required.'),
+    nid: z.string().min(1, 'NID is required.'),
+    gender: z.string().min(1, 'Gender is required.'),
+    designation: z.string().min(1, 'Designation is required.'),
+    divisionId: z.string().optional(),
+    districtId: z.string().optional(),
+    upazilaId: z.string().optional(),
+    unionId: z.string().optional(),
+    pollingUnitId: z.string().optional(),
     isEdit: z.boolean(),
     password: z.string().optional(),
     confirmPassword: z.string().optional(),
@@ -85,15 +93,33 @@ export function UsersActionDialog({
     resolver: zodResolver(formSchema),
     defaultValues: isEdit
       ? {
-        ...currentRow,
+        firstName: currentRow?.firstName ?? '',
+        lastName: currentRow?.lastName ?? '',
+        email: currentRow?.email?.email ?? '',
+        phoneNumber: currentRow?.phoneNumber?.phoneNumber ?? '',
+        nid: (currentRow as Users)?.nid ?? '',
+        gender: (currentRow as Users)?.gender ?? '',
+        designation: (currentRow as Users)?.membership?.role?.name ?? '',
+        divisionId: (currentRow as Users)?.area?.divisionId ?? undefined,
+        districtId: (currentRow as Users)?.area?.districtId ?? undefined,
+        upazilaId: (currentRow as Users)?.area?.upazilaId ?? undefined,
+        unionId: (currentRow as Users)?.area?.unionId ?? undefined,
+        pollingUnitId: (currentRow as Users)?.area?.pollingUnitId ?? undefined,
         isEdit,
       }
       : {
         firstName: '',
         lastName: '',
         email: '',
-        role: '',
         phoneNumber: '',
+        nid: '',
+        gender: '',
+        designation: '',
+        divisionId: undefined,
+        districtId: undefined,
+        upazilaId: undefined,
+        unionId: undefined,
+        pollingUnitId: undefined,
         password: '',
         confirmPassword: '',
         isEdit,
@@ -206,6 +232,67 @@ export function UsersActionDialog({
                 )}
               />
 
+              <FormField
+                control={form.control}
+                name='nid'
+                render={({ field }) => (
+                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
+                    <FormLabel className='col-span-2 text-end'>NID</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder='National ID'
+                        className='col-span-4'
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage className='col-span-4 col-start-3' />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='gender'
+                render={({ field }) => (
+                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
+                    <FormLabel className='col-span-2 text-end'>Gender</FormLabel>
+                    <SelectDropdown
+                      defaultValue={field.value}
+                      onValueChange={field.onChange}
+                      placeholder='Select gender'
+                      className='col-span-4 w-full'
+                      items={[
+                        { label: 'Male', value: 'MALE' },
+                        { label: 'Female', value: 'FEMALE' },
+                        { label: 'Third Gender', value: 'THIRD_GENDER' },
+                      ]}
+                    />
+                    <FormMessage className='col-span-4 col-start-3' />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='designation'
+                render={({ field }) => (
+                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
+                    <FormLabel className='col-span-2 text-end'>Designation</FormLabel>
+                    <SelectDropdown
+                      defaultValue={field.value}
+                      onValueChange={field.onChange}
+                      placeholder='Select a designation'
+                      className='col-span-4 w-full'
+                      items={roles?.map(({ name }) => ({
+                        label: name,
+                        value: name,
+                      }))}
+                    />
+                    <FormMessage className='col-span-4 col-start-3' />
+                  </FormItem>
+                )}
+              />
+
               {!isEdit && (
                 <>
                   <FormField
@@ -245,31 +332,14 @@ export function UsersActionDialog({
                 </>
               )}
 
-              <FormField
-                control={form.control}
-                name='role'
-                render={({ field }) => (
-                  <FormItem className='grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1'>
-                    <FormLabel className='col-span-2 text-end'>Role</FormLabel>
-                    <SelectDropdown
-                      defaultValue={field.value}
-                      onValueChange={field.onChange}
-                      placeholder='Select a role'
-                      className='col-span-4'
-                      items={roles?.map(({ name }) => ({
-                        label: name,
-                        value: name,
-                      }))}
-                    />
-                    <FormMessage className='col-span-4 col-start-3' />
-                  </FormItem>
-                )}
-              />
+              <div className='px-0.5'>
+                <UnitSelector setValue={form.setValue as any} form={form as any} />
+              </div>
             </form>
           </Form>
         </div>
         <DialogFooter>
-          <Button onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant='outline' onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button type='submit' form='user-form'>
             Save changes
           </Button>

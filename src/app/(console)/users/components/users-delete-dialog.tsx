@@ -7,12 +7,12 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ConfirmDialog } from '@/components/confirm-dialog'
-import { type User } from '../data/schema'
+import { Users } from '@/app/api/users/route'
 
 type UserDeleteDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  currentRow: User
+  currentRow: Users
 }
 
 export function UsersDeleteDialog({
@@ -23,7 +23,7 @@ export function UsersDeleteDialog({
   const [value, setValue] = useState('')
 
   const handleDelete = () => {
-    if (value.trim() !== currentRow.username) return
+    if (value.trim() !== currentRow.nid) return
 
     onOpenChange(false)
     showSubmittedData(currentRow, 'The following user has been deleted:')
@@ -34,7 +34,7 @@ export function UsersDeleteDialog({
       open={open}
       onOpenChange={onOpenChange}
       handleConfirm={handleDelete}
-      disabled={value.trim() !== currentRow.username}
+      disabled={value.trim() !== currentRow.nid}
       title={
         <span className='text-destructive'>
           <AlertTriangle
@@ -47,22 +47,22 @@ export function UsersDeleteDialog({
       desc={
         <div className='space-y-4'>
           <p className='mb-2'>
-            Are you sure you want to delete{' '}
-            <span className='font-bold'>{currentRow.username}</span>?
+            Are you sure you want to delete nid-
+            <span className='font-bold'>'{currentRow.nid}'</span>?
             <br />
             This action will permanently remove the user with the role of{' '}
             <span className='font-bold'>
-              {currentRow.role.toUpperCase()}
+              {currentRow.membership.role.name.toUpperCase()}
             </span>{' '}
             from the system. This cannot be undone.
           </p>
 
           <Label className='my-2'>
-            Username:
+            NID:
             <Input
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder='Enter username to confirm deletion.'
+              placeholder='Enter NID to confirm deletion.'
             />
           </Label>
 

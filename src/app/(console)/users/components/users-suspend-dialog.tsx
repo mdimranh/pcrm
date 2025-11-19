@@ -15,12 +15,13 @@ import { Textarea } from '@/components/ui/textarea'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { type User } from "../data/schema";
+import { Users } from '@/app/api/users/route'
 
 type UsersSuspendDialogProps = {
     open: boolean
     onOpenChange: (open: boolean) => void
-    user?: User
-    currentRow?: User
+    user?: Users
+    currentRow?: Users
     onSuccess?: () => void
 }
 
@@ -31,7 +32,7 @@ export function UsersSuspendDialog({
     currentRow,
     onSuccess,
 }: UsersSuspendDialogProps) {
-    const u = (user ?? currentRow) as User
+    const u = (user ?? currentRow) as Users
     const [loading, setLoading] = useState(false)
     const [notes, setNotes] = useState('')
 
@@ -52,8 +53,8 @@ export function UsersSuspendDialog({
             toast.success('User Suspended', {
                 description:
                     `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() ||
-                    u.email ||
-                    u.phoneNumber ||
+                    u.email?.email ||
+                    u.phoneNumber?.phoneNumber ||
                     'The user has been suspended.',
             })
             onSuccess?.()
@@ -78,19 +79,53 @@ export function UsersSuspendDialog({
                 </DialogHeader>
 
                 <div className='space-y-4'>
-                    <div className='grid grid-cols-2 gap-4'>
-                        <div>
-                            <Label className='text-xs text-muted-foreground'>Name</Label>
-                            <p className='font-medium'>
-                                {`${u?.firstName ?? ''} ${u?.lastName ?? ''}`.trim() || '—'}
-                            </p>
+                    <div className='space-y-3'>
+                        <div className='grid grid-cols-3 gap-4'>
+                            <div>
+                                <Label className='text-xs text-muted-foreground'>Name</Label>
+                                <p className='font-medium'>
+                                    {`${u?.firstName ?? ''} ${u?.lastName ?? ''}`.trim() || '—'}
+                                </p>
+                            </div>
+                            <div>
+                                <Label className='text-xs text-muted-foreground'>NID</Label>
+                                <p className='font-medium'>{u?.nid || '—'}</p>
+                            </div>
+                            <div>
+                                <Label className='text-xs text-muted-foreground'>Role</Label>
+                                <p className='font-medium'>{u?.membership?.role?.name || '—'}</p>
+                            </div>
                         </div>
-                        <div>
-                            <Label className='text-xs text-muted-foreground'>Email / Phone Number</Label>
-                            <p className='font-medium'>
-                                {u?.email || u?.phoneNumber || '—'}
-                            </p>
+                        <div className='grid grid-cols-2 gap-4'>
+                            <div>
+                                <Label className='text-xs text-muted-foreground'>Email</Label>
+                                <p className='font-medium'>
+                                    {u?.email?.email || '—'}
+                                </p>
+                            </div>
+                            <div>
+                                <Label className='text-xs text-muted-foreground'>Phone</Label>
+                                <p className='font-medium'>
+                                    {u?.phoneNumber?.phoneNumber || '—'}
+                                </p>
+                            </div>
                         </div>
+                        {u?.area && (
+                            <div>
+                                <Label className='text-xs text-muted-foreground'>Area</Label>
+                                <p className='font-medium'>
+                                    {[
+                                        u?.area?.pollingUnit?.name || '',
+                                        u?.area?.union?.name || '',
+                                        u?.area?.upazila?.name || '',
+                                        u?.area?.district?.name || '',
+                                        u?.area?.division?.name || '',
+                                    ]
+                                        .filter(Boolean)
+                                        .join(', ')}
+                                </p>
+                            </div>
+                        )}
                     </div>
 
                     <div className='space-y-2'>
