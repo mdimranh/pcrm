@@ -62,7 +62,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
                   setOpen('approve')
                 }}
               >
-                Approve
+                Review
                 <DropdownMenuShortcut>
                   <UserPen size={16} />
                 </DropdownMenuShortcut>

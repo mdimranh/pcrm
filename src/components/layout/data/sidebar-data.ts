@@ -68,10 +68,9 @@ export const sidebarData: SidebarData = {
           icon: Package,
         },
         {
-          title: "Chats",
-          url: "/chats",
-          badge: "3",
-          icon: MessagesSquare,
+          title: "Roles",
+          url: "/roles",
+          icon: UserCog,
         },
         {
           title: "Users",

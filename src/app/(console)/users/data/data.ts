@@ -2,12 +2,12 @@ import { UserStatus } from '@/core/db/client'
 import { Shield, UserCheck, Users, CreditCard } from 'lucide-react'
 
 export const callTypes = new Map<string, string>([
-  ['ACTIVE', 'bg-teal-100/30 text-teal-900 dark:text-teal-200 border-teal-200'],
-  ['REJECTED', 'bg-neutral-300/40 border-neutral-300'],
-  ['PENDING', 'bg-sky-200/40 text-sky-900 dark:text-sky-100 border-sky-300'],
+  ['ACTIVE', 'bg-green-200/40 text-green-900 dark:text-green-100 border-green-300'],
+  ['REJECTED', 'bg-red-200/40 text-red-900 dark:text-red-100 border-red-300'],
+  ['PENDING', 'bg-yellow-200/40 text-yellow-900 dark:text-yellow-100 border-yellow-300'],
   [
     'SUSPENDED',
-    'bg-destructive/10 dark:bg-destructive/50 text-destructive dark:text-primary border-destructive/10',
+    'bg-gray-200/40 text-gray-900 dark:text-gray-100 border-gray-300',
   ],
 ])
 

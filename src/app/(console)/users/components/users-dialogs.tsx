@@ -6,7 +6,7 @@ import { useUsers } from './users-provider'
 import { UsersSuspendDialog } from './users-suspend-dialog'
 
 export function UsersDialogs({ roles }: { roles?: Role[] }) {
-  const { open, setOpen, currentRow, setCurrentRow } = useUsers()
+  const { open, setOpen, currentRow, setCurrentRow, refreshUsers } = useUsers()
   return (
     <>
       <UsersActionDialog
@@ -15,6 +15,7 @@ export function UsersDialogs({ roles }: { roles?: Role[] }) {
         open={open === 'add'}
         roles={roles}
         onOpenChange={() => setOpen('add')}
+        onSuccess={refreshUsers}
       />
 
       <UsersInviteDialog
@@ -36,6 +37,7 @@ export function UsersDialogs({ roles }: { roles?: Role[] }) {
                 setCurrentRow(null)
               }, 500)
             }}
+            onSuccess={refreshUsers}
             currentRow={currentRow}
           />
 
@@ -50,6 +52,7 @@ export function UsersDialogs({ roles }: { roles?: Role[] }) {
                 setCurrentRow(null)
               }, 500)
             }}
+            onSuccess={refreshUsers}
             currentRow={currentRow}
           />
 
@@ -62,6 +65,7 @@ export function UsersDialogs({ roles }: { roles?: Role[] }) {
                 setCurrentRow(null)
               }, 500)
             }}
+            onSuccess={refreshUsers}
             currentRow={currentRow}
           />
 
@@ -74,6 +78,7 @@ export function UsersDialogs({ roles }: { roles?: Role[] }) {
                 setCurrentRow(null)
               }, 500)
             }}
+            onSuccess={refreshUsers}
             currentRow={currentRow}
           />
         </>

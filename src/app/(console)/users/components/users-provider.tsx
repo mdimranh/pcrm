@@ -11,16 +11,17 @@ type UsersContextType = {
   setOpen: (str: UsersDialogType | null) => void;
   currentRow: Users | null;
   setCurrentRow: React.Dispatch<React.SetStateAction<Users | null>>;
+  refreshUsers?: () => void;
 };
 
 const UsersContext = React.createContext<UsersContextType | null>(null);
 
-export function UsersProvider({ children }: { children: React.ReactNode }) {
+export function UsersProvider({ children, refreshUsers }: { children: React.ReactNode; refreshUsers?: () => void }) {
   const [open, setOpen] = useDialogState<UsersDialogType>(null);
   const [currentRow, setCurrentRow] = useState<Users | null>(null);
 
   return (
-    <UsersContext value={{ open, setOpen, currentRow, setCurrentRow }}>
+    <UsersContext value={{ open, setOpen, currentRow, setCurrentRow, refreshUsers }}>
       {children}
     </UsersContext>
   );

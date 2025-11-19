@@ -21,33 +21,29 @@ export default function Users() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const reload = async () => {
+    setLoading(true);
+    try {
+      const [usersRes, rolesRes] = await Promise.all([
+        fetch("/api/users", { credentials: "include" }),
+        fetch("/api/roles")
+      ]);
+      const usersJson = (await usersRes.json()) as UsersType[];
+      const rolesJson = (await rolesRes.json()) as { data: Role[] };
+      setData(usersJson);
+      setRoles(rolesJson.data);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const [data, setData] = useState<UsersType[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
 
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const [usersRes, rolesRes] = await Promise.all([
-          fetch("/api/users", { credentials: "include" }),
-          fetch("/api/roles")
-        ]);
-        const usersJson = (await usersRes.json()) as UsersType[];
-        const rolesJson = (await rolesRes.json()) as { data: Role[] };
-
-        if (!cancelled) {
-          setData(usersJson);
-          setRoles(rolesJson.data);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+    reload();
   }, []);
 
   // convert URLSearchParams to an object if needed
@@ -99,7 +95,7 @@ export default function Users() {
   };
 
   return (
-    <UsersProvider>
+    <UsersProvider refreshUsers={reload}>
       <Main className="flex flex-1 flex-col gap-4 sm:gap-6">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div>

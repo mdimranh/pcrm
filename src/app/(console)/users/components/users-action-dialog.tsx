@@ -48,6 +48,7 @@ const formSchema = z
     unionId: z.string().optional(),
     pollingUnitId: z.string().optional(),
     isEdit: z.boolean(),
+    isPendingEdit: z.boolean(),
     password: z.string().optional(),
     confirmPassword: z.string().optional(),
   })
@@ -83,6 +84,7 @@ type UserActionDialogProps = {
   open: boolean
   roles?: Role[]
   onOpenChange: (open: boolean) => void
+  onSuccess?: () => void
 }
 
 export function UsersActionDialog({
@@ -91,8 +93,11 @@ export function UsersActionDialog({
   open,
   roles,
   onOpenChange,
+  onSuccess,
 }: UserActionDialogProps) {
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [rejecting, setRejecting] = useState(false)
   const isEdit = !!currentRow
   const isPendingEdit = action === 'approve'
   const form = useForm<UserForm>({
@@ -112,6 +117,7 @@ export function UsersActionDialog({
         unionId: (currentRow as Users)?.area?.unionId ?? undefined,
         pollingUnitId: (currentRow as Users)?.area?.pollingUnitId ?? undefined,
         isEdit,
+        isPendingEdit
       }
       : {
         firstName: '',
@@ -128,14 +134,67 @@ export function UsersActionDialog({
         pollingUnitId: undefined,
         password: '',
         confirmPassword: '',
-        isEdit
+        isEdit,
+        isPendingEdit
       },
   })
 
-  const onSubmit = (values: UserForm) => {
+  const onSubmit = async (values: UserForm) => {
+    if (isPendingEdit || isEdit) {
+      setSubmitting(true)
+      try {
+        const payload: any = {
+          firstName: values.firstName,
+          lastName: values.lastName,
+          email: values.email,
+          phoneNumber: values.phoneNumber,
+          nid: values.nid,
+          gender: values.gender || undefined,
+          designation: values.designation || undefined,
+          divisionId: values.divisionId || undefined,
+          districtId: values.districtId || undefined,
+          upazilaId: values.upazilaId || undefined,
+          unionId: values.unionId || undefined,
+          pollingUnitId: values.pollingUnitId || undefined,
+          ...(isPendingEdit ? { status: 'ACTIVE' } : {}),
+        }
+        const res = await fetch(`/api/users/${currentRow?.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+        if (res.ok) {
+          form.reset()
+          onSuccess?.()
+          onOpenChange(false)
+        }
+      } finally {
+        setSubmitting(false)
+      }
+      return
+    }
     form.reset()
     showSubmittedData(values)
     onOpenChange(false)
+  }
+
+  const handleReject = async () => {
+    if (!currentRow?.id) return
+    setRejecting(true)
+    try {
+      const res = await fetch(`/api/users/${currentRow.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'REJECTED' }),
+      })
+      if (res.ok) {
+        form.reset()
+        onSuccess?.()
+        onOpenChange(false)
+      }
+    } finally {
+      setRejecting(false)
+    }
   }
 
   return (
@@ -148,7 +207,7 @@ export function UsersActionDialog({
     >
       <DialogContent className='sm:max-w-lg'>
         <DialogHeader className='text-start'>
-          <DialogTitle>{isPendingEdit ? 'Approve User' : isEdit ? 'Edit User' : 'Add New User'}</DialogTitle>
+          <DialogTitle>{isPendingEdit ? 'Review User' : isEdit ? 'Edit User' : 'Add New User'}</DialogTitle>
           <DialogDescription>
             {isEdit ? 'Update the user here. ' : 'Create new user here. '}
             Click save when you&apos;re done.
@@ -352,8 +411,15 @@ export function UsersActionDialog({
         </div>
         <DialogFooter>
           <Button variant='outline' onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button type='submit' form='user-form' disabled={loading}>
-            {isPendingEdit ? 'Approve' : 'Save changes'}
+          {isPendingEdit && (
+            <Button variant='destructive' onClick={handleReject} disabled={loading || rejecting}>
+              {rejecting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+              {rejecting ? 'Rejecting...' : 'Reject'}
+            </Button>
+          )}
+          <Button type='submit' form='user-form' disabled={loading || submitting}>
+            {submitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+            {isPendingEdit ? (submitting ? 'Approving...' : 'Approve') : (submitting ? 'Saving...' : 'Save changes')}
           </Button>
         </DialogFooter>
       </DialogContent>

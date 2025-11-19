@@ -7,26 +7,47 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ConfirmDialog } from '@/components/confirm-dialog'
+import { toast } from 'sonner'
 import { Users } from '@/app/api/users/route'
 
 type UserDeleteDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   currentRow: Users
+  onSuccess?: () => void
 }
 
 export function UsersDeleteDialog({
   open,
   onOpenChange,
   currentRow,
+  onSuccess,
 }: UserDeleteDialogProps) {
   const [value, setValue] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const handleDelete = () => {
     if (value.trim() !== currentRow.nid) return
-
-    onOpenChange(false)
-    showSubmittedData(currentRow, 'The following user has been deleted:')
+      ; (async () => {
+        try {
+          setLoading(true)
+          const res = await fetch(`/api/users/${currentRow.id}`, { method: 'DELETE' })
+          if (!res.ok) throw new Error('Failed to delete user')
+          toast.success('User Deleted', {
+            description:
+              `${currentRow.firstName ?? ''} ${currentRow.lastName ?? ''}`.trim() ||
+              currentRow.email?.email ||
+              currentRow.phoneNumber?.phoneNumber ||
+              'The user has been deleted.',
+          })
+          onSuccess?.()
+          onOpenChange(false)
+        } catch {
+          toast.error('Error', { description: 'Failed to delete user. Please try again.' })
+        } finally {
+          setLoading(false)
+        }
+      })()
   }
 
   return (
@@ -35,6 +56,7 @@ export function UsersDeleteDialog({
       onOpenChange={onOpenChange}
       handleConfirm={handleDelete}
       disabled={value.trim() !== currentRow.nid}
+      isLoading={loading}
       title={
         <span className='text-destructive'>
           <AlertTriangle

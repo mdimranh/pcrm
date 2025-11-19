@@ -68,6 +68,38 @@ export function UsersSuspendDialog({
         }
     }
 
+    const handleReject = async () => {
+        if (!u?.id) return
+        if (!notes.trim()) {
+            toast.error('Note is required')
+            return
+        }
+        setLoading(true)
+        try {
+            const res = await fetch(`/api/users/${u.id}/reject`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ notes }),
+            })
+            if (!res.ok) throw new Error('Failed to reject user')
+            toast.success('User Rejected', {
+                description:
+                    `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() ||
+                    u.email?.email ||
+                    u.phoneNumber?.phoneNumber ||
+                    'The user has been rejected.',
+            })
+            onSuccess?.()
+            onOpenChange(false)
+        } catch {
+            toast.error('Error', {
+                description: 'Failed to reject user. Please try again.',
+            })
+        } finally {
+            setLoading(false)
+        }
+    }
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className='sm:max-w-[520px]'>
@@ -147,6 +179,20 @@ export function UsersSuspendDialog({
                         disabled={loading}
                     >
                         Cancel
+                    </Button>
+                    <Button
+                        variant='destructive'
+                        onClick={handleReject}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <>
+                                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                Processing...
+                            </>
+                        ) : (
+                            <>Reject</>
+                        )}
                     </Button>
                     <Button
                         variant='destructive'
