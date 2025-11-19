@@ -1,0 +1,120 @@
+// Add to your existing schema.prisma
+
+model Election {
+  id                String             @id @default(cuid())
+  title             String
+  description       String?
+  organizationId    String
+  organization      Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // Timeline
+  appealStartDate   DateTime
+  appealEndDate     DateTime
+  voteStartDate     DateTime?
+  voteEndDate       DateTime?
+  
+  // Status
+  status            ElectionStatus     @default(APPEAL_PERIOD)
+  
+  // Results
+  isCounted         Boolean            @default(false)
+  countedAt         DateTime?
+  
+  positions         ElectionPosition[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  
+  @@index([organizationId])
+  @@index([status])
+  @@map("elections")
+}
+
+enum ElectionStatus {
+  APPEAL_PERIOD      // Appeals are open
+  APPEAL_CLOSED      // Appeals closed, waiting for approval
+  APPROVAL_PERIOD    // Admin approving candidates
+  VOTING_PERIOD      // Voting is active
+  VOTING_CLOSED      // Voting ended, counting pending
+  COMPLETED          // Results published
+  CANCELLED          // Election cancelled
+}
+
+model ElectionPosition {
+  id                String              @id @default(cuid())
+  electionId        String
+  election          Election            @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  name              String              // e.g., "President", "Secretary General"
+  description       String?
+  maxCandidates     Int?                // Max number of candidates for this position
+  displayOrder      Int                 @default(0)
+  
+  candidates        Candidate[]
+  votes             Vote[]
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  @@index([electionId])
+  @@map("election_positions")
+}
+
+model Candidate {
+  id                String              @id @default(cuid())
+  positionId        String
+  position          ElectionPosition    @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Application details
+  statement         String?             // Candidate's statement/manifesto
+  status            CandidateStatus     @default(PENDING)
+  
+  // Approval
+  approvedBy        String?
+  approvedAt        DateTime?
+  rejectionReason   String?
+  
+  // Vote count
+  voteCount         Int                 @default(0)
+  
+  votes             Vote[]
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  @@unique([positionId, userId])
+  @@index([positionId])
+  @@index([userId])
+  @@index([status])
+  @@map("candidates")
+}
+
+enum CandidateStatus {
+  PENDING           // Waiting for admin approval
+  APPROVED          // Approved for voting
+  REJECTED          // Application rejected
+  WITHDRAWN         // Candidate withdrew
+}
+
+model Vote {
+  id                String              @id @default(cuid())
+  electionId        String
+  positionId        String
+  position          ElectionPosition    @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  candidateId       String
+  candidate         Candidate           @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  voterId           String
+  voter             User                @relation(fields: [voterId], references: [id], onDelete: Cascade)
+  
+  // Metadata
+  ipAddress         String?
+  userAgent         String?
+  
+  createdAt         DateTime            @default(now())
+  
+  @@unique([positionId, voterId])  // One vote per position per voter
+  @@index([electionId])
+  @@index([candidateId])
+  @@index([voterId])
+  @@map("votes")
+}
