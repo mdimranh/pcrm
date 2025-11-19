@@ -25,7 +25,7 @@ export async function GET(
   try {
     const { electionId } = await params;
     const currentUser = await getCurrentUserServer();
-    
+
     if (!currentUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -36,7 +36,7 @@ export async function GET(
         positions: {
           include: {
             candidates: {
-              where: { status: "APPROVED" },
+              // where: { status: "PENDING" },
               include: {
                 user: {
                   select: {
@@ -56,7 +56,10 @@ export async function GET(
     });
 
     if (!election) {
-      return NextResponse.json({ error: "Election not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Election not found" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({ data: election });
@@ -76,7 +79,7 @@ export async function PATCH(
   try {
     const { electionId } = await params;
     const currentUser = await getCurrentUserServer();
-    
+
     if (!currentUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -98,7 +101,10 @@ export async function PATCH(
     });
 
     if (!election) {
-      return NextResponse.json({ error: "Election not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Election not found" },
+        { status: 404 }
+      );
     }
 
     if (election.organizationId !== membership.organizationId) {
@@ -109,7 +115,9 @@ export async function PATCH(
       where: { id: electionId },
       data: {
         status: data.status,
-        voteStartDate: data.voteStartDate ? new Date(data.voteStartDate) : undefined,
+        voteStartDate: data.voteStartDate
+          ? new Date(data.voteStartDate)
+          : undefined,
         voteEndDate: data.voteEndDate ? new Date(data.voteEndDate) : undefined,
       },
     });

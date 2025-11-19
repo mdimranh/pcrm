@@ -20,7 +20,7 @@ export function ElectionsList() {
     try {
       const response = await fetch("/api/elections");
       if (!response.ok) throw new Error("Failed to fetch elections");
-      const data = await response.json();
+      const data = await response.json() as { data: Election[] };
       setElections(data.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");

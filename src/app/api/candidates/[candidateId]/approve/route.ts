@@ -16,7 +16,8 @@ export async function POST(
   try {
     const { candidateId } = await params;
     const currentUser = await getCurrentUserServer();
-    
+    const isSuperAdmin = currentUser?.isSuperAdmin;
+
     if (!currentUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -30,7 +31,7 @@ export async function POST(
       include: { role: true },
     });
 
-    if (!membership?.isAdmin && !membership?.role?.isSuperAdmin) {
+    if (!membership?.isAdmin && !isSuperAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -47,10 +48,15 @@ export async function POST(
     });
 
     if (!candidate) {
-      return NextResponse.json({ error: "Candidate not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Candidate not found" },
+        { status: 404 }
+      );
     }
 
-    if (candidate.position.election.organizationId !== membership.organizationId) {
+    if (
+      candidate.position.election.organizationId !== membership.organizationId
+    ) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
