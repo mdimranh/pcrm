@@ -1,9 +1,10 @@
+import { Role } from '@/core/db/client'
 import { UsersActionDialog } from './users-action-dialog'
 import { UsersDeleteDialog } from './users-delete-dialog'
 import { UsersInviteDialog } from './users-invite-dialog'
 import { useUsers } from './users-provider'
 
-export function UsersDialogs() {
+export function UsersDialogs({ roles }: { roles?: Role[] }) {
   const { open, setOpen, currentRow, setCurrentRow } = useUsers()
   return (
     <>
@@ -24,6 +25,7 @@ export function UsersDialogs() {
           <UsersActionDialog
             key={`user-edit-${currentRow.id}`}
             open={open === 'edit'}
+            roles={roles}
             onOpenChange={() => {
               setOpen('edit')
               setTimeout(() => {

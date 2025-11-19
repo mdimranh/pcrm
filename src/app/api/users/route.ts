@@ -39,15 +39,10 @@ export async function GET(req: NextRequest) {
         id: u.id,
         firstName: u.firstName,
         lastName: u.lastName,
-        username:
-            (u.email?.email ? u.email.email.split("@")[0] : undefined) ??
-            `${u.firstName}.${u.lastName}`.toLowerCase(),
         email: u.email?.email ?? "",
         phoneNumber: u.phoneNumber?.phoneNumber ?? "",
-        status: mapStatus[String(u.status)] ?? "invited",
-        role: u.membership?.role?.isSuperAdmin
-            ? "superadmin"
-            : "admin",
+        status: u.status,
+        role: u.membership?.role?.name,
         createdAt: u.createdAt,
         updatedAt: u.updatedAt,
     }));

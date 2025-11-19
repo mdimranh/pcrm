@@ -14,21 +14,32 @@ import { UsersProvider } from "./components/users-provider";
 import { UsersTable } from "./components/users-table";
 import { useEffect, useState } from "react";
 import type { User } from "./data/schema";
+import { Role } from "@/core/db/client";
 
 export default function Users() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [data, setData] = useState<User[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch("/api/users", { credentials: "include" });
-        const json = (await res.json()) as User[];
-        if (!cancelled) setData(json);
+        const [usersRes, rolesRes] = await Promise.all([
+          fetch("/api/users", { credentials: "include" }),
+          fetch("/api/roles")
+        ]);
+        const usersJson = (await usersRes.json()) as User[];
+        const rolesJson = (await rolesRes.json()) as { data: Role[] };
+
+        if (!cancelled) {
+          setData(usersJson);
+          setRoles(rolesJson.data);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -46,7 +57,6 @@ export default function Users() {
 
   // implement NavigateFn expected by useTableUrlState
   const navigate: NavigateFn = ({ search: nextSearch, replace }) => {
-    // build current params from the live URL (avoid stale useSearchParams closure)
     const current: Record<string, unknown> = {};
     const currentParams = new URLSearchParams(window.location.search);
     for (const [k, v] of currentParams.entries()) current[k] = v;
@@ -100,10 +110,10 @@ export default function Users() {
           <UsersPrimaryButtons />
         </div>
 
-        <UsersTable data={data} search={search} navigate={navigate} />
+        <UsersTable data={data} roles={roles} search={search} loading={loading} navigate={navigate} />
       </Main>
 
-      <UsersDialogs />
+      <UsersDialogs roles={roles} />
     </UsersProvider>
   );
 }

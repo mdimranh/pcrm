@@ -24,22 +24,26 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
-import { roles } from "../data/data";
 import { type User } from "../data/schema";
 import { DataTableBulkActions } from "./data-table-bulk-actions";
 import { usersColumns as columns } from "./users-columns";
+import { Role, UserStatus } from "@/core/db/client";
 
 type DataTableProps = {
   data: User[];
   search: Record<string, unknown>;
+  loading: boolean;
   navigate: NavigateFn;
+  roles: Role[];
 };
 
-export function UsersTable({ data, search, navigate }: DataTableProps) {
+export function UsersTable({ data, roles, search, loading, navigate }: DataTableProps) {
   // Local UI-only states
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [sorting, setSorting] = useState<SortingState>([]);
+
+  const [status, setStatus] = useState<UserStatus[]>(Object.values(UserStatus));
 
   // Local state management for table (uncomment to use local-only state, not synced with URL)
   // const [columnFilters, onColumnFiltersChange] = useState<ColumnFiltersState>([])
@@ -58,8 +62,8 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
     pagination: { defaultPage: 1, defaultPageSize: 10 },
     globalFilter: { enabled: false },
     columnFilters: [
-      // username per-column text filter
-      { columnId: "username", searchKey: "username", type: "string" },
+      // fullname per-column text filter
+      { columnId: "fullName", searchKey: "fullName", type: "string" },
       { columnId: "status", searchKey: "status", type: "array" },
       { columnId: "role", searchKey: "role", type: "array" },
     ],
@@ -104,22 +108,17 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
       <DataTableToolbar
         table={table}
         searchPlaceholder="Filter users..."
-        searchKey="username"
+        searchKey="fullName"
         filters={[
           {
             columnId: "status",
             title: "Status",
-            options: [
-              { label: "Active", value: "active" },
-              { label: "Inactive", value: "inactive" },
-              { label: "Invited", value: "invited" },
-              { label: "Suspended", value: "suspended" },
-            ],
+            options: status.map((status) => ({ label: status, value: status })),
           },
           {
             columnId: "role",
             title: "Role",
-            options: roles.map((role) => ({ ...role })),
+            options: roles.map((role) => ({ label: role.name, value: role.name })),
           },
         ]}
       />
@@ -152,7 +151,35 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <svg
+                      className="h-4 w-4 animate-spin text-muted-foreground"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    <span className="text-sm text-muted-foreground">Loading...</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
