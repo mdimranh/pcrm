@@ -2,11 +2,6 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import db from "@/core/db";
 
-const publicRoutes = [
-  "/auth/*",
-  "/api/auth/*",
-];
-
 function matchesRoute(path: string, routes: string[]): boolean {
   return routes.some((route) => {
     if (path === route) return true;

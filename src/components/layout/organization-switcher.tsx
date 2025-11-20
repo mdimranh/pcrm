@@ -43,13 +43,18 @@ export function OrganizationSwitcher({ teams, label = "Organizations", loading }
     setActiveTeam(team)
     try {
       if (user?.id) {
-        await fetch(`/api/auth/switch-org?org=${team.id}`, {
+        const res = await fetch(`/api/auth/switch-org?org=${team.id}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
         })
+        if (res.ok) {
+          if (typeof window !== 'undefined') window.location.assign('/')
+          return
+        }
       }
-    } finally {
+      if (typeof window !== 'undefined') window.location.reload()
+    } catch {
       if (typeof window !== 'undefined') window.location.reload()
     }
   }

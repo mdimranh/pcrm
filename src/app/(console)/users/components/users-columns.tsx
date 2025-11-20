@@ -9,123 +9,118 @@ import { callTypes } from '../data/data'
 import { DataTableRowActions } from './data-table-row-actions'
 import { Email, Member, PhoneNumber, Role, UserStatus } from '@/core/db/client'
 import { Users } from '@/app/api/users/route'
-import { useCurrentUser } from '@/context/current-user-provider'
 
-export const usersColumns: ColumnDef<Users>[] = [
-  {
-    id: 'select',
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && 'indeterminate')
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label='Select all'
-        className='translate-y-[2px]'
-      />
-    ),
-    meta: {
-      className: cn('max-md:sticky start-0 z-10 rounded-tl-[inherit]'),
+export function getUsersColumns(isSuperAdmin: boolean): ColumnDef<Users>[] {
+  return [
+    {
+      id: 'select',
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label='Select all'
+          className='translate-y-[2px]'
+        />
+      ),
+      meta: {
+        className: cn('max-md:sticky start-0 z-10 rounded-tl-[inherit]'),
+      },
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label='Select row'
+          className='translate-y-[2px]'
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
     },
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label='Select row'
-        className='translate-y-[2px]'
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: 'fullName',
-    id: 'fullName',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Name' />
-    ),
-    cell: ({ row }) => {
-      const { firstName, lastName } = row.original
-      const fullName = `${firstName} ${lastName}`
-      return <LongText className='max-w-36'>{fullName}</LongText>
+    {
+      accessorKey: 'fullName',
+      id: 'fullName',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title='Name' />
+      ),
+      cell: ({ row }) => {
+        const { firstName, lastName } = row.original
+        const fullName = `${firstName} ${lastName}`
+        return <LongText className='max-w-36'>{fullName}</LongText>
+      },
+      meta: { className: 'w-36' },
     },
-    meta: { className: 'w-36' },
-  },
-  {
-    accessorKey: 'email',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Email' />
-    ),
-    cell: ({ row }) => (
-      <div className='w-fit ps-2 text-nowrap'>{(row.getValue('email') as Email).email}</div>
-    ),
-  },
-  {
-    accessorKey: 'phoneNumber',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Phone Number' />
-    ),
-    cell: ({ row }) => (
-      <div className='w-fit ps-2 text-nowrap'>
-        {(row.getValue('phoneNumber') as PhoneNumber).phoneNumber}
-      </div>
-    ),
-    enableSorting: false,
-  },
-  {
-    accessorKey: 'status',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Status' />
-    ),
-    cell: ({ row }) => {
-      const status = row.getValue('status') as UserStatus
-      const badgeColor = callTypes.get(status.toUpperCase())
-      return (
-        <div className='flex space-x-2'>
-          <Badge variant='outline' className={cn('capitalize', badgeColor)}>
-            {status.toLowerCase()}
-          </Badge>
+    {
+      accessorKey: 'email',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title='Email' />
+      ),
+      cell: ({ row }) => (
+        <div className='w-fit ps-2 text-nowrap'>{(row.getValue('email') as Email).email}</div>
+      ),
+    },
+    {
+      accessorKey: 'phoneNumber',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title='Phone Number' />
+      ),
+      cell: ({ row }) => (
+        <div className='w-fit ps-2 text-nowrap'>
+          {(row.getValue('phoneNumber') as PhoneNumber).phoneNumber}
         </div>
-      )
+      ),
+      enableSorting: false,
     },
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id))
+    {
+      accessorKey: 'status',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title='Status' />
+      ),
+      cell: ({ row }) => {
+        const status = row.getValue('status') as UserStatus
+        const badgeColor = callTypes.get(status.toUpperCase())
+        return (
+          <div className='flex space-x-2'>
+            <Badge variant='outline' className={cn('capitalize', badgeColor)}>
+              {status.toLowerCase()}
+            </Badge>
+          </div>
+        )
+      },
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id))
+      },
+      enableHiding: false,
+      enableSorting: false,
     },
-    enableHiding: false,
-    enableSorting: false,
-  },
-  {
-    accessorKey: 'membership',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Designation' />
-    ),
-    cell: ({ row }) => {
-      return (
-        <div className='flex items-center gap-x-2'>
-          <span className='text-sm capitalize'>{(row.getValue('membership') as (Member & { role: Role }))?.role?.name}</span>
-        </div>
-      )
+    {
+      accessorKey: 'membership',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title='Designation' />
+      ),
+      cell: ({ row }) => {
+        return (
+          <div className='flex items-center gap-x-2'>
+            <span className='text-sm capitalize'>{(row.getValue('membership') as (Member & { role: Role }))?.role?.name}</span>
+          </div>
+        )
+      },
+      filterFn: (row, id, value) => {
+        return value.includes((row.getValue(id) as (Member & { role: Role }))?.role?.name || '');
+      },
+      enableSorting: false,
+      enableHiding: false,
     },
-    filterFn: (row, id, value) => {
-      return value.includes((row.getValue(id) as (Member & { role: Role }))?.role?.name || '');
+    {
+      id: 'actions',
+      header: ({ column }) => (
+        isSuperAdmin ? <DataTableColumnHeader column={column} title='Actions' /> : null
+      ),
+      cell: (ctx) => (
+        isSuperAdmin ? <DataTableRowActions {...ctx} /> : null
+      ),
     },
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    id: 'actions',
-    header: ({ column }) => {
-      const { user } = useCurrentUser()
-      const isSuperAdmin = !!(user?.isSuperAdmin || user?.membership?.role?.isSuperAdmin)
-      return isSuperAdmin ? (
-        <DataTableColumnHeader column={column} title='Actions' />
-      ) : null
-    },
-    cell: (ctx) => {
-      const { user } = useCurrentUser()
-      const isSuperAdmin = !!(user?.isSuperAdmin || user?.membership?.role?.isSuperAdmin)
-      return isSuperAdmin ? <DataTableRowActions {...ctx} /> : null
-    },
-  },
-]
+  ]
+}

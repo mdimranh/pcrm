@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
-import { showSubmittedData } from '@/lib/show-submitted-data'
+
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -70,7 +70,7 @@ export function UsersDeleteDialog({
         <div className='space-y-4'>
           <p className='mb-2'>
             Are you sure you want to delete nid-
-            <span className='font-bold'>'{currentRow.nid}'</span>?
+            <span className='font-bold'>&apos;{currentRow.nid}&apos;</span>?
             <br />
             This action will permanently remove the user with the role of{' '}
             <span className='font-bold'>
