@@ -16,20 +16,43 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { Skeleton } from '@/components/ui/skeleton'
+import Image from 'next/image'
+import { useCurrentUser } from '@/context/current-user-provider'
 
 type TeamSwitcherProps = {
-  teams: { name: string; logo: React.ElementType; plan: string }[]
+  teams: { id: string; name: string; logo?: React.ElementType; image?: string; plan?: string }[]
   label?: string
   loading?: boolean
 }
 
 export function OrganizationSwitcher({ teams, label = "Organizations", loading }: TeamSwitcherProps) {
   const { isMobile } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState(teams[0] ?? { name: 'Loading...', logo: GalleryVerticalEnd, plan: '' })
+  const { user } = useCurrentUser()
+  const [activeTeam, setActiveTeam] = React.useState(teams[0] ?? { name: 'Loading...', image: undefined, plan: '' })
   const isLoading = !!loading
+  const [imgError, setImgError] = React.useState(false)
+  const [switching, setSwitching] = React.useState(false)
   React.useEffect(() => {
-    if (teams.length > 0) setActiveTeam(teams[0])
+    if (teams.length > 0) setActiveTeam(teams.find(t => t.id === user?.session?.activeOrgId) ?? teams[0])
   }, [teams])
+  React.useEffect(() => {
+    setImgError(false)
+  }, [activeTeam])
+  async function selectOrg(team: { id: string; name: string; logo?: React.ElementType; image?: string; plan?: string }) {
+    setSwitching(true)
+    setActiveTeam(team)
+    try {
+      if (user?.id) {
+        await fetch(`/api/auth/switch-org?org=${team.id}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+        })
+      }
+    } finally {
+      if (typeof window !== 'undefined') window.location.reload()
+    }
+  }
 
   return (
     <SidebarMenu>
@@ -40,8 +63,14 @@ export function OrganizationSwitcher({ teams, label = "Organizations", loading }
               size='lg'
               className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
             >
-              <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
-                {isLoading ? <Loader2 className='size-4 animate-spin' /> : <activeTeam.logo className='size-4' />}
+              <div className='text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
+                {isLoading || switching ? (
+                  <Loader2 className='size-4 animate-spin' />
+                ) : (
+                  activeTeam.logo ? <Image src={activeTeam.logo as string} alt={activeTeam.name} width={20} height={20} className='size-8' onError={() => setImgError(true)} /> : (
+                    <GalleryVerticalEnd className='size-4 shrink-0' />
+                  )
+                )}
               </div>
               <div className='grid flex-1 text-start text-sm leading-tight'>
                 <span className='truncate font-semibold'>
@@ -72,24 +101,27 @@ export function OrganizationSwitcher({ teams, label = "Organizations", loading }
             ) : (
               teams.map((team, index) => (
                 <DropdownMenuItem
-                  key={team.name}
-                  onClick={() => setActiveTeam(team)}
-                  className='gap-2 p-2'
+                  key={team.id}
+                  onClick={() => !switching && selectOrg(team)}
+                  className={`gap-2 p-2 ${switching ? 'opacity-50 pointer-events-none' : ''}`}
+                  disabled={switching}
                 >
-                  <div className='flex size-6 items-center justify-center rounded-sm border'>
-                    <team.logo className='size-4 shrink-0' />
+                  <div className='flex size-6 items-center justify-center'>
+                    {team.logo ? <Image src={team.logo as string} alt={team.name} width={16} height={16} className='size-6 rounded-sm' onError={() => setImgError(true)} /> : (
+                      <GalleryVerticalEnd className='size-4 shrink-0' />
+                    )}
                   </div>
                   {team.name}
                   <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
                 </DropdownMenuItem>
               ))
             )}
-            < DropdownMenuSeparator />
+            <DropdownMenuSeparator />
             <DropdownMenuItem className='gap-2 p-2'>
               <div className='bg-background flex size-6 items-center justify-center rounded-md border'>
                 <Plus className='size-4' />
               </div>
-              <div className='text-muted-foreground font-medium'>Add team</div>
+              <div className='text-muted-foreground font-medium'>Add Organization</div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

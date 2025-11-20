@@ -6,6 +6,7 @@ model Organization {
   domain    String?    @unique
   logo      String?
   metadata  Json?
+  isDefault Boolean    @default(false)
   members   Member[]
   elections Election[]
   createdAt DateTime   @default(now())

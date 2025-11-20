@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    domains: ['upload.wikimedia.org'],
+    unoptimized: true,
+  },
 };
 
 export default nextConfig;

@@ -176,7 +176,7 @@ export function UserAuthForm({
           />
         )}
         {currentStep === 2 && (
-          <UnitSelector setValue={form.setValue} form={form} />
+          <UnitSelector setValue={form.setValue} form={form} setLoading={setIsLoading} />
         )}
         {currentStep === 3 && (
           <>

@@ -18,6 +18,35 @@ function generateToken() {
         .join("");
 }
 
+async function defaultOrgId() {
+    const defaultOrg = await db.organization.findFirst({
+        where: {
+            isDefault: true
+        },
+    });
+    if (!defaultOrg) {
+        const org = await db.organization.findFirst({
+            orderBy: {
+                createdAt: "asc"
+            }
+        });
+        if (!org) {
+            throw new Error("No organization found");
+        }
+        await db.organization.update({
+            where: {
+                id: org.id
+            },
+            data: {
+                isDefault: true
+            }
+        });
+        return org.id;
+    } else {
+        return defaultOrg.id;
+    }
+}
+
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
@@ -64,6 +93,7 @@ export async function POST(req: NextRequest) {
                 expiresAt,
                 ipAddress,
                 userAgent,
+                activeOrgId: await defaultOrgId() ?? null,
                 userId: emailRecord.user.id,
             },
         });

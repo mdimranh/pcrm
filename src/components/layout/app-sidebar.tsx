@@ -18,7 +18,7 @@ import Image from "next/image";
 export function AppSidebar({ ...props }) {
   const { user, loading } = useCurrentUser();
   const isSuperAdmin = user?.isSuperAdmin ?? false;
-  const [orgTeams, setOrgTeams] = useState<{ name: string; logo: any; plan: string }[]>([]);
+  const [orgTeams, setOrgTeams] = useState<{ id: string; name: string; logo: any; plan: string }[]>([]);
   const [loadingOrgs, setLoadingOrgs] = useState(false);
   useEffect(() => {
     if (!isSuperAdmin) return;
@@ -28,9 +28,14 @@ export function AppSidebar({ ...props }) {
         const res = await fetch("/api/auth/signup/organizations", { credentials: "include" });
         const orgs = await res.json();
         const mapped = Array.isArray(orgs)
-          ? orgs.map((o: any) => ({ name: o.name, logo: GalleryVerticalEnd, plan: "Organization" }))
+          ? orgs.map((o: any) => ({
+            id: o.id,
+            name: o.name,
+            image: (typeof o.logo === "string" ? o.logo.replace(/[`]/g, "").trim() : undefined) || "/images/logo.png",
+            plan: "Organization",
+          }))
           : [];
-        setOrgTeams(mapped);
+        setOrgTeams(mapped.map((o: any) => ({ id: o.id, name: o.name, logo: o.image, plan: o.plan })));
       } catch {
         setOrgTeams([]);
       } finally {
@@ -63,11 +68,11 @@ export function AppSidebar({ ...props }) {
           </div>
         ) : (
           <div className="flex gap-2 items-center">
-            <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
+            <div className='text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center'>
               <Image
                 src={user?.membership?.organization?.logo || "/images/logo.png"}
                 alt={user?.membership?.organization?.name || ""}
-                className="size-4"
+                className="size-8"
                 width={24}
                 height={24}
               />

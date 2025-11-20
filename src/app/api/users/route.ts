@@ -28,21 +28,85 @@ export type Users = User & {
     };
 };
 
+function areaQuery(
+    divisionId?: string,
+    districtId?: string,
+    upazilaId?: string,
+    unionId?: string,
+    pollingUnitId?: string,
+) {
+    if (pollingUnitId) {
+        return {
+            pollingUnitId,
+        }
+    } else if (unionId) {
+        return {
+            unionId,
+            pollingUnitId: null,
+        }
+    } else if (upazilaId) {
+        return {
+            upazilaId,
+            unionId: null,
+            pollingUnitId: null,
+        }
+    } else if (districtId) {
+        return {
+            districtId,
+            upazilaId: null,
+            unionId: null,
+            pollingUnitId: null,
+        }
+    } else if (divisionId) {
+        return {
+            divisionId,
+            districtId: null,
+            upazilaId: null,
+            unionId: null,
+            pollingUnitId: null,
+        }
+    }
+}
+
 export async function GET(req: NextRequest) {
     const currentUser = await getCurrentUserServer();
+    const url = new URL(req.url);
+    const divisionId = url.searchParams.get("divisionId");
+    const districtId = url.searchParams.get("districtId");
+    const upazilaId = url.searchParams.get("upazilaId");
+    const unionId = url.searchParams.get("unionId");
+    const pollingUnitId = url.searchParams.get("pollingUnitId");
+
+    const isSuper = !!currentUser?.isSuperAdmin;
     const region: { label: string; key: string } = userReagion(currentUser?.area);
+
+
+    const whereArea = isSuper
+        ? (divisionId || districtId || upazilaId || unionId || pollingUnitId
+            ? {
+                area: areaQuery(
+                    divisionId ?? undefined,
+                    districtId ?? undefined,
+                    upazilaId ?? undefined,
+                    unionId ?? undefined,
+                    pollingUnitId ?? undefined,
+                ),
+            }
+            : {})
+        : (region.key === "central"
+            ? { area: null }
+            : {
+                area: {
+                    [region.key]: currentUser?.area?.[
+                        region.key as keyof typeof currentUser.area
+                    ],
+                },
+            });
+
     const users = await db.user.findMany({
         where: {
             NOT: { id: currentUser?.id },
-            ...(region.key === "central"
-                ? { area: null }
-                : {
-                    area: {
-                        [region.key]: currentUser?.area?.[
-                            region.key as keyof typeof currentUser.area
-                        ],
-                    },
-                }),
+            ...whereArea,
         },
         include: {
             email: true,
@@ -50,31 +114,11 @@ export async function GET(req: NextRequest) {
             membership: { include: { role: true } },
             area: {
                 include: {
-                    division: {
-                        select: {
-                            name: true,
-                        },
-                    },
-                    district: {
-                        select: {
-                            name: true,
-                        },
-                    },
-                    upazila: {
-                        select: {
-                            name: true,
-                        },
-                    },
-                    union: {
-                        select: {
-                            name: true,
-                        },
-                    },
-                    pollingUnit: {
-                        select: {
-                            name: true,
-                        },
-                    },
+                    division: { select: { name: true } },
+                    district: { select: { name: true } },
+                    upazila: { select: { name: true } },
+                    union: { select: { name: true } },
+                    pollingUnit: { select: { name: true } },
                 },
             },
         },

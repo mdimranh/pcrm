@@ -23,7 +23,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { DataTableBulkActions } from "./data-table-bulk-actions";
 import { usersColumns as columns } from "./users-columns";
 import { Role, UserStatus } from "@/core/db/client";
@@ -35,9 +35,11 @@ type DataTableProps = {
   loading: boolean;
   navigate: NavigateFn;
   roles: Role[];
+  preToolbarSlot?: ReactNode;
+  postToolbarSlot?: ReactNode;
 };
 
-export function UsersTable({ data, roles, search, loading, navigate }: DataTableProps) {
+export function UsersTable({ data, roles, search, loading, navigate, preToolbarSlot, postToolbarSlot }: DataTableProps) {
   // Local UI-only states
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -116,6 +118,7 @@ export function UsersTable({ data, roles, search, loading, navigate }: DataTable
         "flex flex-1 flex-col gap-4"
       )}
     >
+      {preToolbarSlot}
       <DataTableToolbar
         table={table}
         searchPlaceholder="Search name, email, phone..."
@@ -132,6 +135,7 @@ export function UsersTable({ data, roles, search, loading, navigate }: DataTable
           },
         ]}
       />
+      {postToolbarSlot}
       <div className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader>
