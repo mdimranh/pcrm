@@ -42,6 +42,7 @@ import {
 import { useDebouncedCallback } from "@/hooks/use-debounce";
 import { UsersTableSkeleton } from "./users-list-skeleton";
 import { UserApprovalDialog } from "./user-approval-dialog";
+import { UsersSuspendDialog } from "./users-suspend-dialog";
 
 interface User {
     id: string;
@@ -107,6 +108,7 @@ export function UsersList() {
     const [roles, setRoles] = useState<Array<{ id: string; name: string }>>([]);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [showApprovalDialog, setShowApprovalDialog] = useState(false);
+    const [showSuspendDialog, setShowSuspendDialog] = useState(false);
 
     // Fetch roles for filter
     useEffect(() => {
@@ -191,6 +193,17 @@ export function UsersList() {
     const handleApprovalSuccess = () => {
         fetchUsers();
         setShowApprovalDialog(false);
+        setSelectedUser(null);
+    };
+
+    const handleSuspend = (user: User) => {
+        setSelectedUser(user);
+        setShowSuspendDialog(true);
+    };
+
+    const handleSuspendSuccess = () => {
+        fetchUsers();
+        setShowSuspendDialog(false);
         setSelectedUser(null);
     };
 
@@ -381,14 +394,25 @@ export function UsersList() {
                                                     {new Date(user.createdAt).toLocaleDateString()}
                                                 </TableCell>
                                                 <TableCell>
-                                                    {user.status === "PENDING" && (
-                                                        <Button
-                                                            size="sm"
-                                                            onClick={() => handleApproval(user)}
-                                                        >
-                                                            Review
-                                                        </Button>
-                                                    )}
+                                                    <div className="flex gap-2">
+                                                        {user.status === "PENDING" && (
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={() => handleApproval(user)}
+                                                            >
+                                                                Review
+                                                            </Button>
+                                                        )}
+                                                        {user.status === "ACTIVE" && (
+                                                            <Button
+                                                                variant="destructive"
+                                                                size="sm"
+                                                                onClick={() => handleSuspend(user)}
+                                                            >
+                                                                Suspend
+                                                            </Button>
+                                                        )}
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         ))
@@ -478,6 +502,15 @@ export function UsersList() {
                     onOpenChange={setShowApprovalDialog}
                     user={selectedUser}
                     onSuccess={handleApprovalSuccess}
+                />
+            )}
+
+            {selectedUser && (
+                <UsersSuspendDialog
+                    open={showSuspendDialog}
+                    onOpenChange={setShowSuspendDialog}
+                    user={selectedUser}
+                    onSuccess={handleSuspendSuccess}
                 />
             )}
         </>

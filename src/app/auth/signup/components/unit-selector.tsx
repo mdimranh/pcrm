@@ -18,7 +18,7 @@ import {
   getUpazila,
 } from "../actions";
 
-export function UnitSelector({ setValue, form }: { setValue: any; form: any }) {
+export function UnitSelector({ setValue, form, setLoading }: { setValue: any; form: any, setLoading: (loading: boolean) => void }) {
   const [divisions, setDivisions] = useState<{ id: string; name: string }[]>(
     []
   );
@@ -28,6 +28,7 @@ export function UnitSelector({ setValue, form }: { setValue: any; form: any }) {
   const [upazilas, setUpazilas] = useState<{ id: string; name: string }[]>([]);
   const [unions, setUnions] = useState<{ id: string; name: string }[]>([]);
   const [units, setUnits] = useState<{ id: string; name: string }[]>([]);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   // Load divisions initially
   useEffect(() => {
@@ -38,54 +39,101 @@ export function UnitSelector({ setValue, form }: { setValue: any; form: any }) {
     loadDivisions();
   }, []);
 
+  useEffect(() => {
+    if (!isInitializing) {
+      setLoading(false);
+    };
+  }, [isInitializing]);
+
+  useEffect(() => {
+    async function initFromFormDefaults() {
+      setIsInitializing(true);
+      try {
+        const divisionId = form?.getValues?.("divisionId");
+        const districtId = form?.getValues?.("districtId");
+        const upazilaId = form?.getValues?.("upazilaId");
+        const unionId = form?.getValues?.("unionId");
+        if (divisionId) {
+          setValue("divisionId", divisionId);
+          const districts = await getDistrict(divisionId);
+          setDistricts(districts);
+          if (districtId) {
+            setValue("districtId", districtId);
+            const upazilas = await getUpazila(districtId);
+            setUpazilas(upazilas);
+            if (upazilaId) {
+              setValue("upazilaId", upazilaId);
+              const unions = await getUnion(upazilaId);
+              setUnions(unions);
+              if (unionId) {
+                setValue("unionId", unionId);
+                const units = await getPollingUnit(unionId);
+                setUnits(units);
+              }
+            }
+          }
+        }
+      } finally {
+        setIsInitializing(false);
+      }
+    }
+    initFromFormDefaults();
+  }, [form]);
+
   async function handleDivision(id: string) {
+    setLoading(true);
     setValue("divisionId", id);
     const districts = await getDistrict(id);
     setDistricts(districts);
-
     setUpazilas([]);
     setUnions([]);
     setUnits([]);
+    setLoading(false);
   }
 
   async function handleDistrict(id: string) {
+    setLoading(true);
     setValue("districtId", id);
     const upazilas = await getUpazila(id);
     setUpazilas(upazilas);
-
     setUnions([]);
     setUnits([]);
+    setLoading(false);
   }
 
   async function handleUpazila(id: string) {
+    setLoading(true);
     setValue("upazilaId", id);
     const unions = await getUnion(id);
     setUnions(unions);
-
     setUnits([]);
+    setLoading(false);
   }
 
   async function handleUnion(id: string) {
+    setLoading(true);
     setValue("unionId", id);
     const units = await getPollingUnit(id);
     setUnits(units);
+    setLoading(false);
   }
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+    <div className="space-y-4 relative">
+      <div className={`grid grid-cols-2 gap-4`}>
         <Field>
           <FieldLabel htmlFor="checkout-7j9-exp-year-f59">Division</FieldLabel>
           {/* District */}
           <Select
+            defaultValue={form?.getValues?.("divisionId") ?? undefined}
             onValueChange={(value) => {
               handleDivision(value);
             }}
+            disabled={isInitializing}
           >
             <FormControl>
               <SelectTrigger className="w-full">
                 {" "}
-                {/* ✅ Add here */}
                 <SelectValue placeholder="Select Division" />
               </SelectTrigger>
             </FormControl>
@@ -101,7 +149,7 @@ export function UnitSelector({ setValue, form }: { setValue: any; form: any }) {
         <Field>
           <FieldLabel htmlFor="checkout-7j9-exp-year-f59">District</FieldLabel>
           {/* District */}
-          <Select onValueChange={handleDistrict} disabled={!districts.length}>
+          <Select defaultValue={form?.getValues?.("districtId") ?? undefined} onValueChange={handleDistrict} disabled={isInitializing || !districts.length}>
             <SelectTrigger>
               <SelectValue placeholder="Select District" />
             </SelectTrigger>
@@ -120,7 +168,7 @@ export function UnitSelector({ setValue, form }: { setValue: any; form: any }) {
         <Field>
           <FieldLabel htmlFor="checkout-exp-month-ts6">Upazila</FieldLabel>
           {/* Upazila */}
-          <Select onValueChange={handleUpazila} disabled={!upazilas.length}>
+          <Select defaultValue={form?.getValues?.("upazilaId") ?? undefined} onValueChange={handleUpazila} disabled={isInitializing || !upazilas.length}>
             <SelectTrigger>
               <SelectValue placeholder="Select Upazila / Paurashava" />
             </SelectTrigger>
@@ -138,7 +186,7 @@ export function UnitSelector({ setValue, form }: { setValue: any; form: any }) {
             Union / Ward
           </FieldLabel>
           {/* Union / Ward */}
-          <Select onValueChange={handleUnion} disabled={!unions.length}>
+          <Select defaultValue={form?.getValues?.("unionId") ?? undefined} onValueChange={handleUnion} disabled={isInitializing || !unions.length}>
             <SelectTrigger>
               <SelectValue placeholder="Select Union / Ward" />
             </SelectTrigger>
@@ -159,8 +207,9 @@ export function UnitSelector({ setValue, form }: { setValue: any; form: any }) {
         </FieldLabel>
         {/* Polling Unit */}
         <Select
+          defaultValue={form?.getValues?.("pollingUnitId") ?? undefined}
           onValueChange={(id) => setValue("pollingUnitId", id)}
-          disabled={!units.length}
+          disabled={isInitializing || !units.length}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select Polling Station / Unit" />

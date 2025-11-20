@@ -1,0 +1,215 @@
+'use client'
+
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { type User } from "../data/schema";
+import { Users } from '@/app/api/users/route'
+
+type UsersSuspendDialogProps = {
+    open: boolean
+    onOpenChange: (open: boolean) => void
+    user?: Users
+    currentRow?: Users
+    onSuccess?: () => void
+}
+
+export function UsersSuspendDialog({
+    open,
+    onOpenChange,
+    user,
+    currentRow,
+    onSuccess,
+}: UsersSuspendDialogProps) {
+    const u = (user ?? currentRow) as Users
+    const [loading, setLoading] = useState(false)
+    const [notes, setNotes] = useState('')
+
+    const handleSuspend = async () => {
+        if (!u?.id) return
+        if (!notes.trim()) {
+            toast.error('Note is required')
+            return
+        }
+        setLoading(true)
+        try {
+            const res = await fetch(`/api/users/${u.id}/suspend`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ notes }),
+            })
+            if (!res.ok) throw new Error('Failed to suspend user')
+            toast.success('User Suspended', {
+                description:
+                    `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() ||
+                    u.email?.email ||
+                    u.phoneNumber?.phoneNumber ||
+                    'The user has been suspended.',
+            })
+            onSuccess?.()
+            onOpenChange(false)
+        } catch {
+            toast.error('Error', {
+                description: 'Failed to suspend user. Please try again.',
+            })
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleReject = async () => {
+        if (!u?.id) return
+        if (!notes.trim()) {
+            toast.error('Note is required')
+            return
+        }
+        setLoading(true)
+        try {
+            const res = await fetch(`/api/users/${u.id}/reject`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ notes }),
+            })
+            if (!res.ok) throw new Error('Failed to reject user')
+            toast.success('User Rejected', {
+                description:
+                    `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() ||
+                    u.email?.email ||
+                    u.phoneNumber?.phoneNumber ||
+                    'The user has been rejected.',
+            })
+            onSuccess?.()
+            onOpenChange(false)
+        } catch {
+            toast.error('Error', {
+                description: 'Failed to reject user. Please try again.',
+            })
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className='sm:max-w-[520px]'>
+                <DialogHeader className='text-start'>
+                    <DialogTitle>Suspend User</DialogTitle>
+                    <DialogDescription>
+                        Add a note explaining the reason for suspension.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div className='space-y-4'>
+                    <div className='space-y-3'>
+                        <div className='grid grid-cols-3 gap-4'>
+                            <div>
+                                <Label className='text-xs text-muted-foreground'>Name</Label>
+                                <p className='font-medium'>
+                                    {`${u?.firstName ?? ''} ${u?.lastName ?? ''}`.trim() || '—'}
+                                </p>
+                            </div>
+                            <div>
+                                <Label className='text-xs text-muted-foreground'>NID</Label>
+                                <p className='font-medium'>{u?.nid || '—'}</p>
+                            </div>
+                            <div>
+                                <Label className='text-xs text-muted-foreground'>Role</Label>
+                                <p className='font-medium'>{u?.membership?.role?.name || '—'}</p>
+                            </div>
+                        </div>
+                        <div className='grid grid-cols-2 gap-4'>
+                            <div>
+                                <Label className='text-xs text-muted-foreground'>Email</Label>
+                                <p className='font-medium'>
+                                    {u?.email?.email || '—'}
+                                </p>
+                            </div>
+                            <div>
+                                <Label className='text-xs text-muted-foreground'>Phone</Label>
+                                <p className='font-medium'>
+                                    {u?.phoneNumber?.phoneNumber || '—'}
+                                </p>
+                            </div>
+                        </div>
+                        {u?.area && (
+                            <div>
+                                <Label className='text-xs text-muted-foreground'>Area</Label>
+                                <p className='font-medium'>
+                                    {[
+                                        u?.area?.pollingUnit?.name || '',
+                                        u?.area?.union?.name || '',
+                                        u?.area?.upazila?.name || '',
+                                        u?.area?.district?.name || '',
+                                        u?.area?.division?.name || '',
+                                    ]
+                                        .filter(Boolean)
+                                        .join(', ')}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className='space-y-2'>
+                        <Label htmlFor='suspend-notes'>Note</Label>
+                        <Textarea
+                            id='suspend-notes'
+                            placeholder='Provide the reason for suspension'
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            rows={4}
+                        />
+                    </div>
+                </div>
+
+                <DialogFooter>
+                    <Button
+                        variant='outline'
+                        onClick={() => onOpenChange(false)}
+                        disabled={loading}
+                    >
+                        Cancel
+                    </Button>
+                    {/* <Button
+                        variant='destructive'
+                        onClick={handleReject}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <>
+                                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                Processing...
+                            </>
+                        ) : (
+                            <>Reject</>
+                        )}
+                    </Button> */}
+                    <Button
+                        variant='destructive'
+                        onClick={handleSuspend}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <>
+                                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                Processing...
+                            </>
+                        ) : (
+                            <>Suspend</>
+                        )}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}

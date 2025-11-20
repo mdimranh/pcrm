@@ -1,21 +1,24 @@
 model User {
-    id          String       @id @default(cuid())
-    firstName   String
-    middleName  String?
-    lastName    String
-    status      UserStatus   @default(PENDING)
-    createdAt   DateTime     @default(now())
-    updatedAt   DateTime     @updatedAt
-    password    String
-    email       Email?
-    membership  Member?
-    phoneNumber PhoneNumber?
-    gender      Gender?
-    nid         String       @unique
-    area        area?
-    sessions    Session[]
-    candidates  Candidate[]
-    votes       Vote[]
+    id           String       @id @default(cuid())
+    firstName    String
+    middleName   String?
+    lastName     String
+    status       UserStatus   @default(PENDING)
+    createdAt    DateTime     @default(now())
+    updatedAt    DateTime     @updatedAt
+    password     String
+    email        Email?
+    membership   Member?
+    isSuperAdmin Boolean      @default(false)
+    phoneNumber  PhoneNumber?
+    gender       Gender?
+    nid          String       @unique
+    area         area?
+    sessions     Session[]
+    candidates   Candidate[]
+    votes        Vote[]
+    suspendNote  String?
+    suspendedAt  DateTime?
 
     @@map("users")
 }
@@ -69,15 +72,16 @@ model PhoneNumber {
 }
 
 model Session {
-    id        String   @id @default(cuid())
-    expiresAt DateTime
-    token     String   @unique
-    ipAddress String?
-    userAgent String?
-    userId    String
-    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    id          String   @id @default(cuid())
+    expiresAt   DateTime
+    token       String   @unique
+    ipAddress   String?
+    userAgent   String?
+    userId      String
+    activeOrgId String?
+    user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
 
     @@index([userId])
     @@index([expiresAt])

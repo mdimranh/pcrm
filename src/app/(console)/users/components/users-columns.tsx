@@ -1,15 +1,17 @@
+"use client"
 import { type ColumnDef } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
-import { callTypes, roles } from '../data/data'
-import { type User } from '../data/schema'
+import { callTypes } from '../data/data'
 import { DataTableRowActions } from './data-table-row-actions'
-import { UserStatus } from '@/core/db/client'
+import { Email, Member, PhoneNumber, Role, UserStatus } from '@/core/db/client'
+import { Users } from '@/app/api/users/route'
+import { useCurrentUser } from '@/context/current-user-provider'
 
-export const usersColumns: ColumnDef<User>[] = [
+export const usersColumns: ColumnDef<Users>[] = [
   {
     id: 'select',
     header: ({ table }) => (
@@ -56,7 +58,7 @@ export const usersColumns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title='Email' />
     ),
     cell: ({ row }) => (
-      <div className='w-fit ps-2 text-nowrap'>{row.getValue('email')}</div>
+      <div className='w-fit ps-2 text-nowrap'>{(row.getValue('email') as Email).email}</div>
     ),
   },
   {
@@ -64,7 +66,11 @@ export const usersColumns: ColumnDef<User>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Phone Number' />
     ),
-    cell: ({ row }) => <div>{row.getValue('phoneNumber')}</div>,
+    cell: ({ row }) => (
+      <div className='w-fit ps-2 text-nowrap'>
+        {(row.getValue('phoneNumber') as PhoneNumber).phoneNumber}
+      </div>
+    ),
     enableSorting: false,
   },
   {
@@ -90,28 +96,36 @@ export const usersColumns: ColumnDef<User>[] = [
     enableSorting: false,
   },
   {
-    accessorKey: 'role',
+    accessorKey: 'membership',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Role' />
+      <DataTableColumnHeader column={column} title='Designation' />
     ),
     cell: ({ row }) => {
       return (
         <div className='flex items-center gap-x-2'>
-          <span className='text-sm capitalize'>{row.getValue('role')}</span>
+          <span className='text-sm capitalize'>{(row.getValue('membership') as (Member & { role: Role }))?.role?.name}</span>
         </div>
       )
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id))
+      return value.includes((row.getValue(id) as (Member & { role: Role }))?.role?.name || '');
     },
     enableSorting: false,
     enableHiding: false,
   },
   {
     id: 'actions',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Actions' />
-    ),
-    cell: DataTableRowActions,
+    header: ({ column }) => {
+      const { user } = useCurrentUser()
+      const isSuperAdmin = !!(user?.isSuperAdmin || user?.membership?.role?.isSuperAdmin)
+      return isSuperAdmin ? (
+        <DataTableColumnHeader column={column} title='Actions' />
+      ) : null
+    },
+    cell: (ctx) => {
+      const { user } = useCurrentUser()
+      const isSuperAdmin = !!(user?.isSuperAdmin || user?.membership?.role?.isSuperAdmin)
+      return isSuperAdmin ? <DataTableRowActions {...ctx} /> : null
+    },
   },
 ]

@@ -23,21 +23,23 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
-import { type User } from "../data/schema";
+import { ReactNode, useEffect, useState } from "react";
 import { DataTableBulkActions } from "./data-table-bulk-actions";
 import { usersColumns as columns } from "./users-columns";
 import { Role, UserStatus } from "@/core/db/client";
+import { Users } from "@/app/api/users/route";
 
 type DataTableProps = {
-  data: User[];
+  data: Users[];
   search: Record<string, unknown>;
   loading: boolean;
   navigate: NavigateFn;
   roles: Role[];
+  preToolbarSlot?: ReactNode;
+  postToolbarSlot?: ReactNode;
 };
 
-export function UsersTable({ data, roles, search, loading, navigate }: DataTableProps) {
+export function UsersTable({ data, roles, search, loading, navigate, preToolbarSlot, postToolbarSlot }: DataTableProps) {
   // Local UI-only states
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -51,6 +53,8 @@ export function UsersTable({ data, roles, search, loading, navigate }: DataTable
 
   // Synced with URL states (keys/defaults mirror users route search schema)
   const {
+    globalFilter,
+    onGlobalFilterChange,
     columnFilters,
     onColumnFiltersChange,
     pagination,
@@ -60,16 +64,22 @@ export function UsersTable({ data, roles, search, loading, navigate }: DataTable
     search,
     navigate,
     pagination: { defaultPage: 1, defaultPageSize: 10 },
-    globalFilter: { enabled: false },
+    globalFilter: { enabled: true, key: "q" },
     columnFilters: [
-      // fullname per-column text filter
-      { columnId: "fullName", searchKey: "fullName", type: "string" },
       { columnId: "status", searchKey: "status", type: "array" },
-      { columnId: "role", searchKey: "role", type: "array" },
+      { columnId: "designation", searchKey: "designation", type: "array" },
     ],
   });
 
   // eslint-disable-next-line react-hooks/incompatible-library
+  const globalFilterFn = (row: any, _columnId: string, filterValue: string) => {
+    const q = String(filterValue ?? '').toLowerCase();
+    if (!q) return true;
+    const u = row.original as { firstName?: string; lastName?: string; email?: string; phoneNumber?: string };
+    const hay = `${u.firstName ?? ''} ${u.lastName ?? ''} ${u.email ?? ''} ${u.phoneNumber ?? ''}`.toLowerCase();
+    return hay.includes(q);
+  };
+
   const table = useReactTable({
     data,
     columns,
@@ -79,6 +89,7 @@ export function UsersTable({ data, roles, search, loading, navigate }: DataTable
       rowSelection,
       columnFilters,
       columnVisibility,
+      globalFilter,
     },
     enableRowSelection: true,
     onPaginationChange,
@@ -86,6 +97,8 @@ export function UsersTable({ data, roles, search, loading, navigate }: DataTable
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
+    onGlobalFilterChange,
+    globalFilterFn,
     getPaginationRowModel: getPaginationRowModel(),
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -105,10 +118,10 @@ export function UsersTable({ data, roles, search, loading, navigate }: DataTable
         "flex flex-1 flex-col gap-4"
       )}
     >
+      {preToolbarSlot}
       <DataTableToolbar
         table={table}
-        searchPlaceholder="Filter users..."
-        searchKey="fullName"
+        searchPlaceholder="Search name, email, phone..."
         filters={[
           {
             columnId: "status",
@@ -116,12 +129,13 @@ export function UsersTable({ data, roles, search, loading, navigate }: DataTable
             options: status.map((status) => ({ label: status, value: status })),
           },
           {
-            columnId: "role",
-            title: "Role",
+            columnId: "membership",
+            title: "Designation",
             options: roles.map((role) => ({ label: role.name, value: role.name })),
           },
         ]}
       />
+      {postToolbarSlot}
       <div className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader>

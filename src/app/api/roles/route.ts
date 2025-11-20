@@ -6,48 +6,62 @@ import { getCurrentUserServer } from "@/core/auth/current-user-server";
 export async function GET(req: NextRequest) {
     try {
         const currentUser = await getCurrentUserServer();
-
         if (!currentUser) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
-
-        // Get the user's organization
         const membership = await db.member.findFirst({
-            where: {
-                userId: currentUser.id,
-            },
-            include: {
-                organization: true,
-            },
+            where: { userId: currentUser.id },
+            include: { organization: true },
         });
-
         if (!membership) {
             return NextResponse.json(
                 { error: "User is not part of any organization" },
                 { status: 404 }
             );
         }
-
-        // Fetch all roles for the organization
         const roles = await db.role.findMany({
-            where: {
-                organizationId: membership.organizationId,
-            },
             select: {
                 id: true,
                 name: true,
                 description: true,
+                _count: { select: { members: true } },
             },
-            orderBy: {
-                name: "asc",
-            },
+            orderBy: { name: "asc" },
         });
-
         return NextResponse.json({ data: roles });
-    } catch (error) {
-        console.error("Error fetching roles:", error);
+    } catch {
         return NextResponse.json(
             { error: "Failed to fetch roles" },
+            { status: 500 }
+        );
+    }
+}
+
+export async function POST(req: NextRequest) {
+    try {
+        const currentUser = await getCurrentUserServer();
+        if (!currentUser) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        const membership = await db.member.findFirst({
+            where: { userId: currentUser.id },
+            include: { role: true },
+        });
+        if (!currentUser.isSuperAdmin) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+        const body = await req.json() as { name: string; description?: string };
+        if (!body.name?.trim()) {
+            return NextResponse.json({ error: "Name is required" }, { status: 400 });
+        }
+        const role = await db.role.create({
+            data: { name: body.name.trim(), description: body.description ?? null },
+            select: { id: true, name: true, description: true },
+        });
+        return NextResponse.json({ data: role });
+    } catch {
+        return NextResponse.json(
+            { error: "Failed to create role" },
             { status: 500 }
         );
     }

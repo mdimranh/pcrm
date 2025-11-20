@@ -9,9 +9,9 @@ type SearchRecord = Record<string, unknown>
 
 export type NavigateFn = (opts: {
   search:
-    | true
-    | SearchRecord
-    | ((prev: SearchRecord) => Partial<SearchRecord> | SearchRecord)
+  | true
+  | SearchRecord
+  | ((prev: SearchRecord) => Partial<SearchRecord> | SearchRecord)
   replace?: boolean
 }) => void
 
@@ -31,20 +31,20 @@ type UseTableUrlStateParams = {
   }
   columnFilters?: Array<
     | {
-        columnId: string
-        searchKey: string
-        type?: 'string'
-        // Optional transformers for custom types
-        serialize?: (value: unknown) => unknown
-        deserialize?: (value: unknown) => unknown
-      }
+      columnId: string
+      searchKey: string
+      type?: 'string'
+      // Optional transformers for custom types
+      serialize?: (value: unknown) => unknown
+      deserialize?: (value: unknown) => unknown
+    }
     | {
-        columnId: string
-        searchKey: string
-        type: 'array'
-        serialize?: (value: unknown) => unknown
-        deserialize?: (value: unknown) => unknown
-      }
+      columnId: string
+      searchKey: string
+      type: 'array'
+      serialize?: (value: unknown) => unknown
+      deserialize?: (value: unknown) => unknown
+    }
   >
 }
 
@@ -123,13 +123,15 @@ export function useTableUrlState(
     const next = typeof updater === 'function' ? updater(pagination) : updater
     const nextPage = next.pageIndex + 1
     const nextPageSize = next.pageSize
-    navigate({
-      search: (prev) => ({
-        ...(prev as SearchRecord),
-        [pageKey]: nextPage <= defaultPage ? undefined : nextPage,
-        [pageSizeKey]:
-          nextPageSize === defaultPageSize ? undefined : nextPageSize,
-      }),
+    queueMicrotask(() => {
+      navigate({
+        search: (prev) => ({
+          ...(prev as SearchRecord),
+          [pageKey]: nextPage <= defaultPage ? undefined : nextPage,
+          [pageSizeKey]:
+            nextPageSize === defaultPageSize ? undefined : nextPageSize,
+        }),
+      })
     })
   }
 
@@ -142,12 +144,13 @@ export function useTableUrlState(
   const onGlobalFilterChange: OnChangeFn<string> | undefined =
     globalFilterEnabled
       ? (updater) => {
-          const next =
-            typeof updater === 'function'
-              ? updater(globalFilter ?? '')
-              : updater
-          const value = trimGlobal ? next.trim() : next
-          setGlobalFilter(value)
+        const next =
+          typeof updater === 'function'
+            ? updater(globalFilter ?? '')
+            : updater
+        const value = trimGlobal ? next.trim() : next
+        setGlobalFilter(value)
+        queueMicrotask(() => {
           navigate({
             search: (prev) => ({
               ...(prev as SearchRecord),
@@ -155,7 +158,8 @@ export function useTableUrlState(
               [globalFilterKey]: value ? value : undefined,
             }),
           })
-        }
+        })
+      }
       : undefined
 
   const onColumnFiltersChange: OnChangeFn<ColumnFiltersState> = (updater) => {
@@ -181,12 +185,14 @@ export function useTableUrlState(
       }
     }
 
-    navigate({
-      search: (prev) => ({
-        ...(prev as SearchRecord),
-        [pageKey]: undefined,
-        ...patch,
-      }),
+    queueMicrotask(() => {
+      navigate({
+        search: (prev) => ({
+          ...(prev as SearchRecord),
+          [pageKey]: undefined,
+          ...patch,
+        }),
+      })
     })
   }
 
@@ -197,12 +203,14 @@ export function useTableUrlState(
     const currentPage = (search as SearchRecord)[pageKey]
     const pageNum = typeof currentPage === 'number' ? currentPage : defaultPage
     if (pageCount > 0 && pageNum > pageCount) {
-      navigate({
-        replace: true,
-        search: (prev) => ({
-          ...(prev as SearchRecord),
-          [pageKey]: opts.resetTo === 'last' ? pageCount : undefined,
-        }),
+      queueMicrotask(() => {
+        navigate({
+          replace: true,
+          search: (prev) => ({
+            ...(prev as SearchRecord),
+            [pageKey]: opts.resetTo === 'last' ? pageCount : undefined,
+          }),
+        })
       })
     }
   }

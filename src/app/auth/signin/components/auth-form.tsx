@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
+import { useCurrentUser } from "@/context/current-user-provider";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, LogIn } from "lucide-react";
 import Link from "next/link";
@@ -20,7 +21,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
+import { json, z } from "zod";
 
 const signSchema = z.object({
   email: z.email({
@@ -44,6 +45,7 @@ export function UserAuthForm({
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { auth } = useAuthStore();
+  const currentUser = useCurrentUser();
 
   const form = useForm<z.infer<typeof signSchema>>({
     resolver: zodResolver(signSchema),
@@ -63,19 +65,15 @@ export function UserAuthForm({
         credentials: "include",
         body: JSON.stringify(data),
       });
-      const json = await res.json() as { success: boolean; error?: string; accessToken?: string };
+      const json = await res.json() as { success: boolean; error?: string; firstName?: string; lastName?: string; };
       if (!res.ok || !json.success) {
         throw new Error(json.error || "Error, please try again");
       }
 
-      const exp = Date.now() + 24 * 60 * 60 * 1000;
-      const user = { accountNo: "ACC001", email: data.email, role: ["user"], exp };
-      auth.setUser(user);
-      if (json.accessToken) auth.setAccessToken(json.accessToken);
-
+      await currentUser.refresh();
       const targetPath = redirectTo || "/";
       router.push(targetPath);
-      return `Welcome back, ${data.email}!`;
+      return `Welcome back, ${json.firstName} ${json.lastName}!`;
     })();
 
     toast.promise(signInPromise, {

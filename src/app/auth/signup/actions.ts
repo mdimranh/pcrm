@@ -1,37 +1,63 @@
 "use server";
 import db from "@/core/db";
 
+const CACHE_TTL_MS = 10 * 60 * 1000
+const now = () => Date.now()
+const isFresh = (ts: number) => now() - ts < CACHE_TTL_MS
+
+let divisionsCache: { data: any[]; ts: number } | null = null
+const districtsCache = new Map<string, { data: any[]; ts: number }>()
+const upazilasCache = new Map<string, { data: any[]; ts: number }>()
+const unionsCache = new Map<string, { data: any[]; ts: number }>()
+const pollingUnitsCache = new Map<string, { data: any[]; ts: number }>()
+
 export async function getDivision() {
-  const divisions = await db.division.findMany();
-  return divisions;
+  if (divisionsCache && isFresh(divisionsCache.ts)) {
+    return divisionsCache.data
+  }
+  const divisions = await db.division.findMany()
+  divisionsCache = { data: divisions, ts: now() }
+  return divisions
 }
 
 export async function getDistrict(divisionId: string) {
+  const cached = districtsCache.get(divisionId)
+  if (cached && isFresh(cached.ts)) return cached.data
   const districts = await db.district.findMany({
     where: { divisionId: divisionId },
-  });
-  return districts;
+  })
+  districtsCache.set(divisionId, { data: districts, ts: now() })
+  return districts
 }
 
 export async function getUpazila(districtId: string) {
+  const cached = upazilasCache.get(districtId)
+  if (cached && isFresh(cached.ts)) return cached.data
   const upazilas = await db.upazila.findMany({
     where: { districtId: districtId },
-  });
-  return upazilas;
+  })
+  upazilasCache.set(districtId, { data: upazilas, ts: now() })
+  return upazilas
 }
 
 export async function getUnion(upazilaId: string) {
+  const cached = unionsCache.get(upazilaId)
+  if (cached && isFresh(cached.ts)) return cached.data
   const unions = await db.union.findMany({
     where: { upazilaId: upazilaId },
-  });
-  return unions;
+  })
+  unionsCache.set(upazilaId, { data: unions, ts: now() })
+  return unions
 }
 
 export async function getPollingUnit(unionId: string) {
+  const cached = pollingUnitsCache.get(unionId)
+  if (cached && isFresh(cached.ts)) return cached.data
   const pollingUnits = await db.polling_unit.findMany({
     where: { unionId: unionId },
-  });
-  return pollingUnits;
+  })
+  pollingUnitsCache.set(unionId, { data: pollingUnits, ts: now() })
+  return pollingUnits
 }
 
 export async function signUp(data: any) {
