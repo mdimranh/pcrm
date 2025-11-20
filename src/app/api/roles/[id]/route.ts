@@ -10,9 +10,7 @@ export async function PATCH(
         const { id } = await params;
         const currentUser = await getCurrentUserServer();
         if (!currentUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-        const membership = await db.member.findFirst({ where: { userId: currentUser.id }, include: { role: true } });
-        if (!membership?.isAdmin && !membership?.role?.isSuperAdmin) {
+        if (!currentUser.isSuperAdmin) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
@@ -40,8 +38,7 @@ export async function DELETE(
         const currentUser = await getCurrentUserServer();
         if (!currentUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        const membership = await db.member.findFirst({ where: { userId: currentUser.id }, include: { role: true } });
-        if (!membership?.isAdmin && !membership?.role?.isSuperAdmin) {
+        if (!currentUser.isSuperAdmin) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 

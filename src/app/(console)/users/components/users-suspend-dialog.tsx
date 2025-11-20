@@ -180,7 +180,7 @@ export function UsersSuspendDialog({
                     >
                         Cancel
                     </Button>
-                    <Button
+                    {/* <Button
                         variant='destructive'
                         onClick={handleReject}
                         disabled={loading}
@@ -193,7 +193,7 @@ export function UsersSuspendDialog({
                         ) : (
                             <>Reject</>
                         )}
-                    </Button>
+                    </Button> */}
                     <Button
                         variant='destructive'
                         onClick={handleSuspend}

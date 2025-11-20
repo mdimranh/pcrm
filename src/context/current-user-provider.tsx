@@ -1,4 +1,3 @@
-// src/context/current-user-provider.tsx
 "use client";
 
 import { CurrentUser } from "@/core/auth/current-user";
@@ -24,8 +23,18 @@ export function CurrentUserProvider({
     const [user, setUser] = useState<CurrentUser | null>(initialUser ?? null);
     const [loading, setLoading] = useState<boolean>(!initialUser);
 
+    // Sync state when initialUser changes
     useEffect(() => {
-        if (initialUser) return;
+        if (initialUser !== undefined) {
+            setUser(initialUser);
+            setLoading(false);
+        }
+    }, [initialUser]);
+
+    useEffect(() => {
+        // Only fetch if no initial user was provided
+        if (initialUser !== undefined) return;
+
         let cancelled = false;
         (async () => {
             setLoading(true);
@@ -38,7 +47,7 @@ export function CurrentUserProvider({
         return () => {
             cancelled = true;
         };
-    }, [initialUser]);
+    }, []); // Remove initialUser from dependencies
 
     const refresh = async () => {
         setLoading(true);
