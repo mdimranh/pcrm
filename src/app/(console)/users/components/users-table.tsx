@@ -25,9 +25,10 @@ import {
 } from "@tanstack/react-table";
 import { ReactNode, useEffect, useState } from "react";
 import { DataTableBulkActions } from "./data-table-bulk-actions";
-import { usersColumns as columns } from "./users-columns";
+import { getUsersColumns } from "./users-columns";
 import { Role, UserStatus } from "@/core/db/client";
 import { Users } from "@/app/api/users/route";
+import { useCurrentUser } from "@/context/current-user-provider";
 
 type DataTableProps = {
   data: Users[];
@@ -46,6 +47,9 @@ export function UsersTable({ data, roles, search, loading, navigate, preToolbarS
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const [status, setStatus] = useState<UserStatus[]>(Object.values(UserStatus));
+  const { user } = useCurrentUser();
+  const isSuperAdmin = !!(user?.isSuperAdmin || user?.membership?.role?.isSuperAdmin);
+  const columns = getUsersColumns(isSuperAdmin);
 
   // Local state management for table (uncomment to use local-only state, not synced with URL)
   // const [columnFilters, onColumnFiltersChange] = useState<ColumnFiltersState>([])

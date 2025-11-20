@@ -1,5 +1,5 @@
 // src/app/(dashboard)/elections/[electionId]/page.tsx
-import { notFound } from "next/navigation";
+
 import { ElectionDetails } from "@/components/elections/election-details";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";

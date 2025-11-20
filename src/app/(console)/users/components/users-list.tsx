@@ -41,7 +41,6 @@ import {
 } from "@/components/ui/pagination";
 import { useDebouncedCallback } from "@/hooks/use-debounce";
 import { UsersTableSkeleton } from "./users-list-skeleton";
-import { UserApprovalDialog } from "./user-approval-dialog";
 import { UsersSuspendDialog } from "./users-suspend-dialog";
 
 interface User {
@@ -495,24 +494,6 @@ export function UsersList() {
                     )}
                 </CardContent>
             </Card>
-
-            {selectedUser && (
-                <UserApprovalDialog
-                    open={showApprovalDialog}
-                    onOpenChange={setShowApprovalDialog}
-                    user={selectedUser}
-                    onSuccess={handleApprovalSuccess}
-                />
-            )}
-
-            {selectedUser && (
-                <UsersSuspendDialog
-                    open={showSuspendDialog}
-                    onOpenChange={setShowSuspendDialog}
-                    user={selectedUser}
-                    onSuccess={handleSuspendSuccess}
-                />
-            )}
         </>
     );
 }
