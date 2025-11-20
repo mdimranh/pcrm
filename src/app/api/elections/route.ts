@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     // Validate dates
     const appealStart = new Date(data.appealStartDate);
     const appealEnd = new Date(data.appealEndDate);
-    
+
     if (appealEnd <= appealStart) {
       return NextResponse.json(
         { error: "Appeal end date must be after start date" },
@@ -55,14 +55,14 @@ export async function POST(req: NextRequest) {
     if (data.voteStartDate && data.voteEndDate) {
       const voteStart = new Date(data.voteStartDate);
       const voteEnd = new Date(data.voteEndDate);
-      
+
       if (voteStart <= appealEnd) {
         return NextResponse.json(
           { error: "Vote start date must be after appeal end date" },
           { status: 400 }
         );
       }
-      
+
       if (voteEnd <= voteStart) {
         return NextResponse.json(
           { error: "Vote end date must be after vote start date" },
@@ -115,7 +115,7 @@ export async function GET(req: NextRequest) {
       where: { userId: currentUser.id },
     });
 
-    if (!membership) {
+    if (!membership && !currentUser.isSuperAdmin) {
       return NextResponse.json(
         { error: "User is not part of any organization" },
         { status: 404 }
@@ -123,7 +123,9 @@ export async function GET(req: NextRequest) {
     }
 
     const elections = await db.election.findMany({
-      where: { organizationId: membership.organizationId },
+      where: {
+        ...(currentUser.isSuperAdmin ? {} : { organizationId: membership?.organizationId }),
+      },
       include: {
         positions: {
           include: {
@@ -134,7 +136,7 @@ export async function GET(req: NextRequest) {
           orderBy: { displayOrder: "asc" },
         },
         _count: {
-          select: { 
+          select: {
             positions: true,
           },
         },

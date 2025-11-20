@@ -20,7 +20,12 @@ export async function GET(req: NextRequest) {
             );
         }
         const roles = await db.role.findMany({
-            select: { id: true, name: true, description: true },
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                _count: { select: { members: true } },
+            },
             orderBy: { name: "asc" },
         });
         return NextResponse.json({ data: roles });

@@ -43,17 +43,21 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               <UserPen size={16} />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => {
-              setCurrentRow(row.original)
-              setOpen('suspend')
-            }}
-          >
-            Suspend
-            <DropdownMenuShortcut>
-              <UserX size={16} />
-            </DropdownMenuShortcut>
-          </DropdownMenuItem>
+          {
+            row.original.status !== "SUSPENDED" && (
+              <DropdownMenuItem
+                onClick={() => {
+                  setCurrentRow(row.original)
+                  setOpen('suspend')
+                }}
+              >
+                Suspend
+                <DropdownMenuShortcut>
+                  <UserX size={16} />
+                </DropdownMenuShortcut>
+              </DropdownMenuItem>
+            )
+          }
           {
             row.original.status === "PENDING" && (
               <DropdownMenuItem

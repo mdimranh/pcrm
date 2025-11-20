@@ -21,9 +21,9 @@ export function UsersProvider({ children, refreshUsers }: { children: React.Reac
   const [currentRow, setCurrentRow] = useState<Users | null>(null);
 
   return (
-    <UsersContext value={{ open, setOpen, currentRow, setCurrentRow, refreshUsers }}>
+    <UsersContext.Provider value={{ open, setOpen, currentRow, setCurrentRow, refreshUsers }}>
       {children}
-    </UsersContext>
+    </UsersContext.Provider>
   );
 }
 

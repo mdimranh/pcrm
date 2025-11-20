@@ -2,14 +2,21 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Main } from "@/components/layout/main";
 import { RolesProvider, useRoles } from "./components/roles-provider";
 import { RolesActionDialog } from "./components/roles-action-dialog";
 import { RolesDeleteDialog } from "./components/roles-delete-dialog";
 import { Role } from "@/core/db/client";
+import { useRouter, useSearchParams } from "next/navigation";
+import type { NavigateFn } from "@/hooks/use-table-url-state";
+import { RolesTable } from "./components/roles-table";
 
 function RolesPageContent() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => { setMounted(true); }, []);
+
     const [roles, setRoles] = useState<Role[]>([]);
     const [loading, setLoading] = useState(true);
     const { open, setOpen, currentRow, setCurrentRow } = useRoles();
@@ -24,66 +31,63 @@ function RolesPageContent() {
         }
     };
     useEffect(() => { fetchRoles(); }, []);
+
+    const search: Record<string, string> = {};
+    for (const [key, value] of searchParams.entries()) {
+        search[key] = value;
+    }
+
+    const navigate: NavigateFn = ({ search: nextSearch, replace }) => {
+        if (!mounted) return;
+        const current: Record<string, unknown> = {};
+        const currentParams = new URLSearchParams(window.location.search);
+        for (const [k, v] of currentParams.entries()) current[k] = v;
+        let resolved: Record<string, unknown> | undefined;
+        if (nextSearch === true) {
+            resolved = current;
+        } else if (typeof nextSearch === "function") {
+            resolved = nextSearch(current);
+        } else {
+            resolved = nextSearch;
+        }
+        const pathname = window.location.pathname;
+        const url = new URL(pathname, window.location.origin);
+        if (resolved) {
+            for (const k of Object.keys(resolved)) {
+                const v = resolved[k];
+                if (v === undefined || v === null) {
+                    url.searchParams.delete(k);
+                } else if (Array.isArray(v)) {
+                    url.searchParams.delete(k);
+                    for (const item of v) url.searchParams.append(k, String(item));
+                } else if (typeof v === "object") {
+                    url.searchParams.set(k, JSON.stringify(v));
+                } else {
+                    url.searchParams.set(k, String(v));
+                }
+            }
+        }
+        const urlStr = url.pathname + url.search;
+        const currentStr = window.location.pathname + window.location.search;
+        if (urlStr === currentStr) return;
+        if (replace) router.replace(urlStr);
+        else router.push(urlStr);
+    };
+
     return (
         <>
             <Main className="flex flex-1 flex-col gap-4 sm:gap-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Roles</h2>
-                        <p className="text-muted-foreground">Manage role names and descriptions.</p>
+                        <h2 className="text-2xl font-bold tracking-tight">Designations</h2>
+                        <p className="text-muted-foreground">Manage designation names and descriptions.</p>
                     </div>
-                    <Button onClick={() => setOpen("add")}>Add Role</Button>
+                    <Button onClick={() => setOpen("add")}>Add Designation</Button>
                 </div>
-                <div className="overflow-hidden rounded-md border">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Description</TableHead>
-                                <TableHead>Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {loading ? (
-                                <TableRow><TableCell colSpan={3} className="h-24 text-center">Loading...</TableCell></TableRow>
-                            ) : roles.length === 0 ? (
-                                <TableRow><TableCell colSpan={3} className="h-24 text-center">No roles found</TableCell></TableRow>
-                            ) : (
-                                roles.map((role) => (
-                                    <TableRow key={role.id}>
-                                        <TableCell>{role.name}</TableCell>
-                                        <TableCell>{role.description || "—"}</TableCell>
-                                        <TableCell>
-                                            <div className="flex gap-2">
-                                                <Button
-                                                    variant="secondary"
-                                                    size="sm"
-                                                    onClick={() => {
-                                                        setCurrentRow(role);
-                                                        setOpen("edit");
-                                                    }}
-                                                >
-                                                    Edit
-                                                </Button>
-                                                <Button
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    onClick={() => {
-                                                        setCurrentRow(role);
-                                                        setOpen("delete");
-                                                    }}
-                                                >
-                                                    Delete
-                                                </Button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
+
+                <RolesTable data={roles} search={search} loading={loading} navigate={navigate} />
             </Main>
+
             <RolesActionDialog
                 open={open === "add"}
                 onOpenChange={() => setOpen("add")}

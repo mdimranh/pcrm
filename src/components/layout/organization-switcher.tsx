@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ChevronsUpDown, Plus } from 'lucide-react'
+import { ChevronsUpDown, Plus, Loader2, GalleryVerticalEnd } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,18 +15,21 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { Skeleton } from '@/components/ui/skeleton'
 
 type TeamSwitcherProps = {
-  teams: {
-    name: string
-    logo: React.ElementType
-    plan: string
-  }[]
+  teams: { name: string; logo: React.ElementType; plan: string }[]
+  label?: string
+  loading?: boolean
 }
 
-export function TeamSwitcher({ teams }: TeamSwitcherProps) {
+export function OrganizationSwitcher({ teams, label = "Organizations", loading }: TeamSwitcherProps) {
   const { isMobile } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState(teams[0])
+  const [activeTeam, setActiveTeam] = React.useState(teams[0] ?? { name: 'Loading...', logo: GalleryVerticalEnd, plan: '' })
+  const isLoading = !!loading
+  React.useEffect(() => {
+    if (teams.length > 0) setActiveTeam(teams[0])
+  }, [teams])
 
   return (
     <SidebarMenu>
@@ -38,13 +41,13 @@ export function TeamSwitcher({ teams }: TeamSwitcherProps) {
               className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
             >
               <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
-                <activeTeam.logo className='size-4' />
+                {isLoading ? <Loader2 className='size-4 animate-spin' /> : <activeTeam.logo className='size-4' />}
               </div>
               <div className='grid flex-1 text-start text-sm leading-tight'>
                 <span className='truncate font-semibold'>
-                  {activeTeam.name}
+                  {isLoading ? 'Loading...' : activeTeam.name}
                 </span>
-                <span className='truncate text-xs'>{activeTeam.plan}</span>
+                {!isLoading && <span className='truncate text-xs'>{activeTeam.plan}</span>}
               </div>
               <ChevronsUpDown className='ms-auto' />
             </SidebarMenuButton>
@@ -56,22 +59,32 @@ export function TeamSwitcher({ teams }: TeamSwitcherProps) {
             sideOffset={4}
           >
             <DropdownMenuLabel className='text-muted-foreground text-xs'>
-              Teams
+              {label}
             </DropdownMenuLabel>
-            {teams.map((team, index) => (
-              <DropdownMenuItem
-                key={team.name}
-                onClick={() => setActiveTeam(team)}
-                className='gap-2 p-2'
-              >
-                <div className='flex size-6 items-center justify-center rounded-sm border'>
-                  <team.logo className='size-4 shrink-0' />
-                </div>
-                {team.name}
-                <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
+            {isLoading ? (
+              <div className='p-2 space-y-2'>
+                <Skeleton className='h-6 w-full' />
+                <Skeleton className='h-6 w-full' />
+                <Skeleton className='h-6 w-full' />
+              </div>
+            ) : teams.length === 0 ? (
+              <DropdownMenuLabel className='text-muted-foreground text-xs'>No organizations</DropdownMenuLabel>
+            ) : (
+              teams.map((team, index) => (
+                <DropdownMenuItem
+                  key={team.name}
+                  onClick={() => setActiveTeam(team)}
+                  className='gap-2 p-2'
+                >
+                  <div className='flex size-6 items-center justify-center rounded-sm border'>
+                    <team.logo className='size-4 shrink-0' />
+                  </div>
+                  {team.name}
+                  <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
+                </DropdownMenuItem>
+              ))
+            )}
+            < DropdownMenuSeparator />
             <DropdownMenuItem className='gap-2 p-2'>
               <div className='bg-background flex size-6 items-center justify-center rounded-md border'>
                 <Plus className='size-4' />

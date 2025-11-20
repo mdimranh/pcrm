@@ -177,9 +177,8 @@ function SidebarMenuCollapsedDropdown({
             <DropdownMenuItem key={`${sub.title}-${sub.url}`} asChild>
               <Link
                 href={sub.url}
-                className={`${
-                  checkIsActive(pathname, sub) ? "bg-secondary" : ""
-                }`}
+                className={`${checkIsActive(pathname, sub) ? "bg-secondary" : ""
+                  }`}
               >
                 {sub.icon && <sub.icon />}
                 <span className="max-w-52 text-wrap">{sub.title}</span>

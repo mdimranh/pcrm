@@ -32,9 +32,11 @@ export function ProfileDropdown() {
         credentials: "include",
       });
       auth.reset();
+      user.setUser(null);
       router.replace("/auth/signin");
     } catch {
       auth.reset();
+      user.setUser(null);
       router.replace("/auth/signin");
     }
   }
@@ -46,7 +48,7 @@ export function ProfileDropdown() {
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
             <Avatar className="h-8 w-8">
               <AvatarImage src="/avatars/01.png" alt="@shadcn" />
-              <AvatarFallback>SN</AvatarFallback>
+              <AvatarFallback>{`${user.user?.firstName?.[0]}${user.user?.lastName?.[0]}`}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
@@ -57,14 +59,14 @@ export function ProfileDropdown() {
                 {user.user?.firstName} {user.user?.lastName}
               </p>
               <p className="text-muted-foreground text-xs leading-none">
-                {user.user?.email}
+                {user.user?.membership?.role?.name}
               </p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem asChild>
-              <Link href="/settings">
+              <Link href="/me">
                 Profile
                 <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
               </Link>

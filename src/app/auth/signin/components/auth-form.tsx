@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
+import { useCurrentUser } from "@/context/current-user-provider";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, LogIn } from "lucide-react";
 import Link from "next/link";
@@ -44,6 +45,7 @@ export function UserAuthForm({
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { auth } = useAuthStore();
+  const currentUser = useCurrentUser();
 
   const form = useForm<z.infer<typeof signSchema>>({
     resolver: zodResolver(signSchema),
@@ -68,6 +70,7 @@ export function UserAuthForm({
         throw new Error(json.error || "Error, please try again");
       }
 
+      await currentUser.refresh();
       const targetPath = redirectTo || "/";
       router.push(targetPath);
       return `Welcome back, ${json.firstName} ${json.lastName}!`;

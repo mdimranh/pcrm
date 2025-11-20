@@ -2,6 +2,7 @@ model Organization {
   id        String     @id @default(cuid())
   name      String
   slug      String     @unique
+  slogan    String?
   domain    String?    @unique
   logo      String?
   metadata  Json?
@@ -35,14 +36,14 @@ model Member {
 }
 
 model Role {
-  id             String       @id @default(cuid())
-  name           String
-  description    String?
-  isSystem       Boolean      @default(false)
-  isSuperAdmin   Boolean      @default(false)
-  members        Member[]
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  isSystem     Boolean  @default(false)
+  isSuperAdmin Boolean  @default(false)
+  members      Member[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@index([name])
   @@map("roles")

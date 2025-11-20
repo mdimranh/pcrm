@@ -1,14 +1,15 @@
+"use client"
 import { type ColumnDef } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
-import { callTypes, roles } from '../data/data'
-import { type User } from '../data/schema'
+import { callTypes } from '../data/data'
 import { DataTableRowActions } from './data-table-row-actions'
 import { Email, Member, PhoneNumber, Role, UserStatus } from '@/core/db/client'
 import { Users } from '@/app/api/users/route'
+import { useCurrentUser } from '@/context/current-user-provider'
 
 export const usersColumns: ColumnDef<Users>[] = [
   {
@@ -114,9 +115,17 @@ export const usersColumns: ColumnDef<Users>[] = [
   },
   {
     id: 'actions',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Actions' />
-    ),
-    cell: DataTableRowActions,
+    header: ({ column }) => {
+      const { user } = useCurrentUser()
+      const isSuperAdmin = !!(user?.isSuperAdmin || user?.membership?.role?.isSuperAdmin)
+      return isSuperAdmin ? (
+        <DataTableColumnHeader column={column} title='Actions' />
+      ) : null
+    },
+    cell: (ctx) => {
+      const { user } = useCurrentUser()
+      const isSuperAdmin = !!(user?.isSuperAdmin || user?.membership?.role?.isSuperAdmin)
+      return isSuperAdmin ? <DataTableRowActions {...ctx} /> : null
+    },
   },
 ]

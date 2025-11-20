@@ -1,7 +1,7 @@
 // src/core/auth/current-user.ts
 import db from "@/core/db";
 import { cookies } from "next/headers";
-import { area, Member } from "../db/client";
+import { area, Member, Organization, Role } from "../db/client";
 
 export type CurrentUser = {
   id: string;
@@ -9,9 +9,10 @@ export type CurrentUser = {
   firstName: string;
   lastName: string;
   status: string;
+  organization?: Organization;
   organizationId?: string;
   roleId?: string;
-  membership?: Member;
+  membership?: Member & { organization?: Organization; role?: Role };
   area?: area;
   isSuperAdmin: boolean;
 };
@@ -41,6 +42,7 @@ export async function getCurrentUserServer(): Promise<CurrentUser | null> {
     firstName: u.firstName,
     lastName: u.lastName,
     status: u.status,
+    organization: u.membership?.organization,
     organizationId: u.membership?.organizationId,
     roleId: u.membership?.roleId ?? undefined,
     isSuperAdmin: u.isSuperAdmin,

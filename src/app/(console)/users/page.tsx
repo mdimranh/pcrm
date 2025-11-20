@@ -20,6 +20,8 @@ import { Users as UsersType } from "@/app/api/users/route";
 export default function Users() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const reload = async () => {
     setLoading(true);
@@ -54,11 +56,11 @@ export default function Users() {
 
   // implement NavigateFn expected by useTableUrlState
   const navigate: NavigateFn = ({ search: nextSearch, replace }) => {
+    if (!mounted) return;
     const current: Record<string, unknown> = {};
     const currentParams = new URLSearchParams(window.location.search);
     for (const [k, v] of currentParams.entries()) current[k] = v;
 
-    // resolve next search (function | object | true)
     let resolved: Record<string, unknown> | undefined;
     if (nextSearch === true) {
       resolved = current;
@@ -68,7 +70,6 @@ export default function Users() {
       resolved = nextSearch;
     }
 
-    // construct new query string by setting/removing keys with undefined/null
     const pathname = window.location.pathname;
     const url = new URL(pathname, window.location.origin);
 
@@ -81,7 +82,6 @@ export default function Users() {
           url.searchParams.delete(k);
           for (const item of v) url.searchParams.append(k, String(item));
         } else if (typeof v === "object") {
-          // fallback: serialize objects
           url.searchParams.set(k, JSON.stringify(v));
         } else {
           url.searchParams.set(k, String(v));
@@ -90,6 +90,8 @@ export default function Users() {
     }
 
     const urlStr = url.pathname + url.search;
+    const currentStr = window.location.pathname + window.location.search;
+    if (urlStr === currentStr) return;
     if (replace) router.replace(urlStr);
     else router.push(urlStr);
   };

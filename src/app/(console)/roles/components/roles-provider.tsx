@@ -17,9 +17,9 @@ export function RolesProvider({ children, refreshRoles }: { children: React.Reac
     const [open, setOpen] = useDialogState<RolesDialogType>(null);
     const [currentRow, setCurrentRow] = useState<Role | null>(null);
     return (
-        <RolesContext value={{ open, setOpen, currentRow, setCurrentRow, refreshRoles }}>
+        <RolesContext.Provider value={{ open, setOpen, currentRow, setCurrentRow, refreshRoles }}>
             {children}
-        </RolesContext>
+        </RolesContext.Provider>
     );
 }
 export const useRoles = () => {

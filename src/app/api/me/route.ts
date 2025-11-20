@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
                 include: {
                     email: true,
                     membership: { include: { organization: true, role: true } },
+                    area: true,
                 },
             },
         },
@@ -26,13 +27,16 @@ export async function GET(req: NextRequest) {
     const u = session.user;
     const user = {
         id: u.id,
+        isSuperAdmin: u.isSuperAdmin,
         email: u.email?.email,
         firstName: u.firstName,
         lastName: u.lastName,
         status: u.status,
+        organization: u.membership?.organization,
         organizationId: u.membership?.organizationId,
         roleId: u.membership?.roleId ?? undefined,
+        membership: u.membership ?? undefined,
+        area: u.area ?? undefined,
     };
-
     return NextResponse.json({ success: true, user });
 }

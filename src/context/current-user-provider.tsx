@@ -2,6 +2,7 @@
 
 import { CurrentUser } from "@/core/auth/current-user";
 import { getCurrentUserClient } from "@/core/auth/current-user-client";
+import { Organization } from "@/core/db/client";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 type CurrentUserContextType = {
